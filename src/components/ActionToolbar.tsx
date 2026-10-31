@@ -9,7 +9,6 @@ import {
   Heart,
   Trash2,
   Download,
-  CheckSquare,
 } from "lucide-react";
 
 interface ActionToolbarProps {
@@ -38,87 +37,81 @@ export function ActionToolbar({
   if (selectedCount === 0) return null;
 
   return (
-    <div className="fixed bottom-16 md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-zinc-900/95 text-white border border-zinc-700/80 px-4 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-2 md:gap-3 animate-in slide-in-from-bottom duration-200">
-      <div className="flex items-center gap-2 pr-3 border-r border-zinc-700">
+    <div className="fixed bottom-16 md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900/95 dark:bg-neutral-800/95 text-white border border-neutral-700/60 px-3.5 py-2 rounded-xl shadow-lg backdrop-blur-sm flex items-center gap-2 select-none animate-in fade-in slide-in-from-bottom-2 duration-150">
+      <div className="flex items-center gap-2 pr-2.5 border-r border-neutral-700">
         <button
           onClick={onClearSelection}
-          className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-1 rounded text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors"
           title="Batal Seleksi"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </button>
-        <span className="text-xs font-semibold whitespace-nowrap">
+        <span className="text-xs font-medium whitespace-nowrap text-neutral-200">
           {selectedCount} dipilih
         </span>
       </div>
 
-      <div className="flex items-center gap-1 md:gap-2">
-        {/* Move to Album */}
+      <div className="flex items-center gap-1">
         {onMoveToAlbum && (
           <button
             onClick={onMoveToAlbum}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-zinc-800 text-xs font-medium text-zinc-200 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors cursor-pointer"
             title="Pindahkan ke Album"
           >
-            <FolderInput className="h-4 w-4 text-sky-400" />
-            <span className="hidden sm:inline">Pindah Album</span>
+            <FolderInput className="h-3.5 w-3.5 text-neutral-400" />
+            <span className="hidden sm:inline">Pindah</span>
           </button>
         )}
 
-        {/* Add to Album */}
         {onAddToAlbum && (
           <button
             onClick={onAddToAlbum}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-zinc-800 text-xs font-medium text-zinc-200 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors cursor-pointer"
             title="Tambahkan ke Album"
           >
-            <FolderPlus className="h-4 w-4 text-emerald-400" />
-            <span className="hidden sm:inline">Tambah Album</span>
+            <FolderPlus className="h-3.5 w-3.5 text-neutral-400" />
+            <span className="hidden sm:inline">Tambah ke Album</span>
           </button>
         )}
 
-        {/* Remove from Album (if in album view) */}
         {inAlbumContext && onRemoveFromAlbum && (
           <button
             onClick={onRemoveFromAlbum}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-zinc-800 text-xs font-medium text-zinc-200 hover:text-amber-400 transition-colors"
+            className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-neutral-300 hover:text-amber-400 hover:bg-neutral-700/50 transition-colors cursor-pointer"
             title="Keluarkan dari Album"
           >
-            <FolderMinus className="h-4 w-4 text-amber-400" />
+            <FolderMinus className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Keluarkan</span>
           </button>
         )}
 
-        {/* Favorite */}
         {onToggleFavorite && (
           <button
             onClick={onToggleFavorite}
-            className="p-2 rounded-xl hover:bg-zinc-800 text-zinc-300 hover:text-rose-400 transition-colors"
+            className="p-1.5 rounded text-neutral-300 hover:text-rose-400 hover:bg-neutral-700/50 transition-colors cursor-pointer"
             title="Favoritkan"
           >
-            <Heart className="h-4 w-4" />
+            <Heart className="h-3.5 w-3.5" />
           </button>
         )}
 
-        {/* Download */}
         {onDownloadAll && (
           <button
             onClick={onDownloadAll}
-            className="p-2 rounded-xl hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors"
-            title="Unduh File"
+            className="p-1.5 rounded text-neutral-300 hover:text-white hover:bg-neutral-700/50 transition-colors cursor-pointer"
+            title="Unduh"
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-3.5 w-3.5" />
           </button>
         )}
 
-        {/* Delete to Trash */}
         {onDeleteToTrash && (
           <button
             onClick={onDeleteToTrash}
-            className="p-2 rounded-xl hover:bg-rose-500/20 text-zinc-300 hover:text-rose-400 transition-colors"
+            className="p-1.5 rounded text-neutral-300 hover:text-rose-400 hover:bg-neutral-700/50 transition-colors cursor-pointer"
             title="Hapus ke Trash"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         )}
       </div>

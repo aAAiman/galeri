@@ -3,13 +3,12 @@
 import React, { useState, useRef } from "react";
 import {
   X,
-  UploadCloud,
+  Upload,
   FileImage,
   FileVideo,
-  CheckCircle2,
+  Check,
   AlertCircle,
   Loader2,
-  FolderPlus,
 } from "lucide-react";
 
 interface UploadFileItem {
@@ -83,7 +82,6 @@ export function UploadModal({
 
   const uploadFile = async (item: UploadFileItem) => {
     try {
-      // Direct upload with XHR for smooth, native upload progress
       const formData = new FormData();
       formData.append("file", item.file);
       if (targetAlbumId) {
@@ -138,7 +136,7 @@ export function UploadModal({
           setItems((prev) =>
             prev.map((i) =>
               i.id === item.id
-                ? { ...i, status: "failed", errorMessage: "Jaringan bermasalah" }
+                ? { ...i, status: "failed", errorMessage: "Koneksi terputus" }
                 : i
             )
           );
@@ -156,7 +154,6 @@ export function UploadModal({
     setIsProcessing(true);
     const waitingItems = items.filter((i) => i.status === "waiting");
 
-    // Concurrency limit 2 as recommended in PRD 17.2.F
     const queue = [...waitingItems];
     const worker = async () => {
       while (queue.length > 0) {
@@ -181,44 +178,40 @@ export function UploadModal({
   const isAllFinished = items.length > 0 && completedCount === items.length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-100">
+      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl w-full max-w-md shadow-lg overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
           <div>
-            <h2 className="font-semibold text-lg text-zinc-900 dark:text-zinc-100">
-              Unggah Foto & Video
+            <h2 className="font-semibold text-xs text-neutral-900 dark:text-neutral-100">
+              Unggah Media
             </h2>
-            {targetAlbumName ? (
-              <p className="text-xs text-sky-600 dark:text-sky-400 flex items-center gap-1 mt-0.5">
-                <FolderPlus className="h-3.5 w-3.5" />
-                Masuk ke album: <strong>{targetAlbumName}</strong>
-              </p>
-            ) : (
-              <p className="text-xs text-zinc-500">
-                Media akan langsung tampil di Home Galeri
+            {targetAlbumName && (
+              <p className="text-[11px] text-neutral-500">
+                Ke album: {targetAlbumName}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="p-1 rounded text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Dropzone area */}
-        <div className="p-6 overflow-y-auto space-y-4 flex-1">
+        {/* Content */}
+        <div className="p-4 overflow-y-auto space-y-3 flex-1">
+          {/* Dropzone */}
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
+            className={`border border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
               isDragging
-                ? "border-sky-500 bg-sky-50/50 dark:bg-sky-950/20"
-                : "border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-zinc-50/50 dark:bg-zinc-950/40"
+                ? "border-neutral-500 bg-neutral-100 dark:bg-neutral-800"
+                : "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 bg-neutral-50/50 dark:bg-neutral-950/50"
             }`}
           >
             <input
@@ -229,40 +222,35 @@ export function UploadModal({
               onChange={handleFileInputChange}
               className="hidden"
             />
-            <div className="h-12 w-12 rounded-full bg-sky-100 dark:bg-sky-950/50 flex items-center justify-center text-sky-600 dark:text-sky-400">
-              <UploadCloud className="h-6 w-6" />
-            </div>
+            <Upload className="h-5 w-5 text-neutral-400" />
             <div className="text-center">
-              <p className="font-medium text-sm text-zinc-800 dark:text-zinc-200">
-                Seret file foto/video ke sini atau{" "}
-                <span className="text-sky-600 dark:text-sky-400 underline">
-                  pilih file
-                </span>
+              <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                Seret file ke sini atau <span className="underline">pilih file</span>
               </p>
-              <p className="text-xs text-zinc-400 mt-1">
-                Mendukung JPG, PNG, WebP, GIF, MP4, MOV, WebM (Kapasitas maks 50 GB)
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                JPG, PNG, WebP, GIF, MP4, MOV, WebM
               </p>
             </div>
           </div>
 
-          {/* Upload Queue List */}
+          {/* Queue */}
           {items.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-zinc-500 px-1">
-                <span>Daftar File ({items.length})</span>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] text-neutral-400 px-0.5">
+                <span>{items.length} file dipilih</span>
                 <span>
                   {completedCount}/{items.length} selesai
                 </span>
               </div>
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                 {items.map((item) => {
                   const isVideo = item.file.type.startsWith("video/");
                   return (
                     <div
                       key={item.id}
-                      className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800 flex items-center gap-3"
+                      className="p-2 rounded-lg bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 flex items-center gap-2.5"
                     >
-                      <div className="h-9 w-9 rounded-lg bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-500">
+                      <div className="text-neutral-400 shrink-0">
                         {isVideo ? (
                           <FileVideo className="h-4 w-4" />
                         ) : (
@@ -270,48 +258,46 @@ export function UploadModal({
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <p className="text-xs font-medium truncate text-zinc-800 dark:text-zinc-200">
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <p className="text-xs truncate text-neutral-800 dark:text-neutral-200">
                             {item.file.name}
                           </p>
-                          <span className="text-[11px] text-zinc-400 shrink-0">
+                          <span className="text-[10px] text-neutral-400 shrink-0">
                             {(item.file.size / (1024 * 1024)).toFixed(1)} MB
                           </span>
                         </div>
-                        {/* Progress bar */}
-                        <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-neutral-200 dark:bg-neutral-800 h-1 rounded-full overflow-hidden">
                           <div
-                            className={`h-full transition-all duration-300 ${
+                            className={`h-full transition-all duration-200 ${
                               item.status === "failed"
                                 ? "bg-rose-500"
                                 : item.status === "completed"
                                 ? "bg-emerald-500"
-                                : "bg-sky-500"
+                                : "bg-blue-600"
                             }`}
                             style={{ width: `${item.progress}%` }}
                           />
                         </div>
                         {item.errorMessage && (
-                          <p className="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
-                            <AlertCircle className="h-3 w-3" />
+                          <p className="text-[10px] text-rose-500 mt-0.5">
                             {item.errorMessage}
                           </p>
                         )}
                       </div>
 
-                      <div className="shrink-0 flex items-center">
+                      <div className="shrink-0">
                         {item.status === "completed" ? (
-                          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                          <Check className="h-4 w-4 text-emerald-500 stroke-[3]" />
                         ) : item.status === "uploading" ? (
-                          <Loader2 className="h-4 w-4 text-sky-500 animate-spin" />
+                          <Loader2 className="h-3.5 w-3.5 text-neutral-400 animate-spin" />
                         ) : item.status === "failed" ? (
-                          <AlertCircle className="h-5 w-5 text-rose-500" />
+                          <AlertCircle className="h-4 w-4 text-rose-500" />
                         ) : (
                           <button
                             onClick={() => removeItem(item.id)}
-                            className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded"
+                            className="p-1 text-neutral-400 hover:text-neutral-600"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3.5 w-3.5" />
                           </button>
                         )}
                       </div>
@@ -324,13 +310,13 @@ export function UploadModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-950/40">
+        <div className="px-4 py-2.5 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-950/50">
           <button
             onClick={() => {
               setItems([]);
               onClose();
             }}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+            className="px-3 py-1.5 rounded-lg text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
             {isAllFinished ? "Tutup" : "Batal"}
           </button>
@@ -339,13 +325,13 @@ export function UploadModal({
             <button
               onClick={startUploads}
               disabled={isProcessing}
-              className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-medium text-sm transition-all shadow-md shadow-sky-600/20 flex items-center gap-2 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-black font-medium text-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
             >
-              {isProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
               <span>
                 {isProcessing
-                  ? "Sedang Mengunggah..."
-                  : `Unggah ${items.filter((i) => i.status === "waiting").length} File`}
+                  ? "Mengunggah..."
+                  : `Unggah (${items.filter((i) => i.status === "waiting").length})`}
               </span>
             </button>
           )}
@@ -356,9 +342,9 @@ export function UploadModal({
                 setItems([]);
                 onClose();
               }}
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition-all"
+              className="px-3.5 py-1.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-black font-medium text-xs cursor-pointer"
             >
-              Selesai ({completedCount} file terunggah)
+              Selesai
             </button>
           )}
         </div>

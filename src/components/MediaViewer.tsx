@@ -63,7 +63,6 @@ export function MediaViewer({
 
   const currentMedia = mediaList[currentIndex];
 
-  // Fetch albums for current media
   useEffect(() => {
     if (currentMedia?.id && showInfo) {
       fetch(`/api/media/${currentMedia.id}`)
@@ -85,7 +84,6 @@ export function MediaViewer({
     setCurrentIndex((prev) => (prev < mediaList.length - 1 ? prev + 1 : 0));
   }, [mediaList.length]);
 
-  // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
 
@@ -113,7 +111,7 @@ export function MediaViewer({
     const d = new Date(dateStr);
     return d.toLocaleDateString("id-ID", {
       day: "numeric",
-      month: "long",
+      month: "short",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
@@ -121,45 +119,41 @@ export function MediaViewer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 flex flex-col select-none animate-in fade-in duration-200">
-      {/* Top Header Controls */}
-      <header className="h-16 px-4 md:px-6 flex items-center justify-between z-10 bg-gradient-to-b from-black/80 to-transparent">
-        <div className="flex items-center gap-3 text-white">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col select-none animate-in fade-in duration-100">
+      {/* Top Bar */}
+      <header className="h-12 px-4 flex items-center justify-between z-20 bg-black/60 backdrop-blur-sm">
+        <div className="flex items-center gap-2 text-white">
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 active:scale-95 transition-all text-white/80 hover:text-white cursor-pointer"
+            className="p-1.5 rounded-md hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
             title="Tutup (Esc)"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
-          <div className="truncate max-w-xs md:max-w-md">
-            <p className="text-sm font-medium truncate text-white">
+          <div className="flex items-center gap-2 pl-2 border-l border-neutral-800 text-xs">
+            <span className="font-medium text-neutral-200 truncate max-w-xs md:max-w-md">
               {currentMedia.original_filename}
-            </p>
-            <p className="text-xs text-white/50">
-              {currentIndex + 1} dari {mediaList.length}
-            </p>
+            </span>
+            <span className="text-neutral-500">
+              {currentIndex + 1} / {mediaList.length}
+            </span>
           </div>
         </div>
 
-        {/* Action icons */}
-        <div className="flex items-center gap-1 md:gap-2">
-          {/* Zoom controls (images only) */}
+        {/* Action Controls */}
+        <div className="flex items-center gap-0.5">
           {currentMedia.media_type === "image" && (
-            <div className="hidden sm:flex items-center bg-white/10 rounded-full p-1 mr-2">
+            <div className="hidden sm:flex items-center mr-2">
               <button
                 onClick={() => setZoomLevel((z) => Math.max(0.5, z - 0.25))}
-                className="p-1.5 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                className="p-1.5 rounded hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
                 title="Perkecil"
               >
                 <ZoomOut className="h-4 w-4" />
               </button>
-              <span className="text-xs text-white/70 px-2 font-mono">
-                {Math.round(zoomLevel * 100)}%
-              </span>
               <button
                 onClick={() => setZoomLevel((z) => Math.min(3, z + 0.25))}
-                className="p-1.5 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                className="p-1.5 rounded hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
                 title="Perbesar"
               >
                 <ZoomIn className="h-4 w-4" />
@@ -167,89 +161,83 @@ export function MediaViewer({
               {zoomLevel !== 1 && (
                 <button
                   onClick={() => setZoomLevel(1)}
-                  className="p-1.5 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+                  className="p-1.5 rounded hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
                   title="Reset Zoom"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <RotateCcw className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
           )}
 
-          {/* Favorite button */}
           <button
             onClick={() => onToggleFavorite && onToggleFavorite(currentMedia.id)}
-            className={`p-2.5 rounded-full hover:bg-white/10 transition-colors ${
+            className={`p-1.5 rounded hover:bg-neutral-800 transition-colors ${
               currentMedia.is_favorite
                 ? "text-rose-500 fill-rose-500"
-                : "text-white/80 hover:text-white"
+                : "text-neutral-300 hover:text-white"
             }`}
             title="Favorit"
           >
             <Heart
-              className={`h-5 w-5 ${
+              className={`h-4 w-4 ${
                 currentMedia.is_favorite ? "fill-rose-500" : ""
               }`}
             />
           </button>
 
-          {/* Download Original */}
           <a
             href={`/api/media/${currentMedia.id}/download`}
             download={currentMedia.original_filename}
-            className="p-2.5 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors"
-            title="Download Original"
+            className="p-1.5 rounded hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
+            title="Unduh Asli"
           >
-            <Download className="h-5 w-5" />
+            <Download className="h-4 w-4" />
           </a>
 
-          {/* Info toggle */}
           <button
             onClick={() => setShowInfo(!showInfo)}
-            className={`p-2.5 rounded-full hover:bg-white/10 transition-colors ${
-              showInfo ? "text-sky-400 bg-white/10" : "text-white/80 hover:text-white"
+            className={`p-1.5 rounded hover:bg-neutral-800 transition-colors ${
+              showInfo ? "text-blue-400 bg-neutral-800" : "text-neutral-300 hover:text-white"
             }`}
-            title="Informasi Media"
+            title="Info"
           >
-            <Info className="h-5 w-5" />
+            <Info className="h-4 w-4" />
           </button>
 
-          {/* Delete to Trash */}
           <button
             onClick={() => onDelete && onDelete(currentMedia.id)}
-            className="p-2.5 rounded-full hover:bg-rose-500/20 text-white/80 hover:text-rose-400 transition-colors"
-            title="Pindahkan ke Trash"
+            className="p-1.5 rounded hover:bg-neutral-800 text-neutral-300 hover:text-rose-400 transition-colors"
+            title="Hapus"
           >
-            <Trash2 className="h-5 w-5" />
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {/* Main Presentation View */}
       <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-        {/* Prev button */}
         {mediaList.length > 1 && (
           <button
             onClick={handlePrev}
-            className="absolute left-4 z-20 p-3 rounded-full bg-black/40 hover:bg-black/80 text-white/80 hover:text-white transition-all backdrop-blur-sm cursor-pointer"
+            className="absolute left-3 z-10 p-2 rounded-full bg-black/40 hover:bg-black/70 text-white/70 hover:text-white transition-colors cursor-pointer"
             title="Sebelumnya (Arrow Left)"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
         )}
 
-        {/* Media display */}
-        <div className="w-full h-full flex items-center justify-center p-4">
+        <div className="w-full h-full flex items-center justify-center p-2 sm:p-6">
           {currentMedia.media_type === "image" ? (
             <div
-              className="overflow-hidden flex items-center justify-center w-full h-full transition-transform duration-100 ease-out"
+              className="flex items-center justify-center w-full h-full transition-transform duration-100 ease-out"
               style={{ transform: `scale(${zoomLevel})` }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`/api/media/${currentMedia.id}/file`}
                 alt={currentMedia.original_filename}
-                className="max-h-[85vh] max-w-[90vw] object-contain select-none"
+                className="max-h-[92vh] max-w-[94vw] object-contain select-none"
                 draggable={false}
               />
             </div>
@@ -259,101 +247,83 @@ export function MediaViewer({
               controls
               autoPlay
               playsInline
-              className="max-h-[85vh] max-w-[90vw] rounded-lg shadow-2xl"
+              className="max-h-[90vh] max-w-[92vw] rounded"
               src={`/api/media/${currentMedia.id}/file`}
             >
-              Browser Anda tidak mendukung pemutaran video ini.
+              Format video tidak didukung.
             </video>
           )}
         </div>
 
-        {/* Next button */}
         {mediaList.length > 1 && (
           <button
             onClick={handleNext}
-            className="absolute right-4 z-20 p-3 rounded-full bg-black/40 hover:bg-black/80 text-white/80 hover:text-white transition-all backdrop-blur-sm cursor-pointer"
+            className="absolute right-3 z-10 p-2 rounded-full bg-black/40 hover:bg-black/70 text-white/70 hover:text-white transition-colors cursor-pointer"
             title="Berikutnya (Arrow Right)"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-5 w-5" />
           </button>
         )}
 
-        {/* Info Sidebar Drawer */}
+        {/* Minimal Info Panel */}
         {showInfo && (
-          <aside className="absolute right-0 top-0 bottom-0 w-80 bg-zinc-900/95 border-l border-zinc-800 text-white p-5 overflow-y-auto z-30 shadow-2xl animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
-              <h3 className="font-semibold text-sm text-zinc-200">Informasi Media</h3>
+          <aside className="absolute right-0 top-0 bottom-0 w-72 bg-neutral-900 border-l border-neutral-800 text-neutral-200 p-4 overflow-y-auto z-20 text-xs space-y-4 animate-in slide-in-from-right-4 duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
+              <span className="font-semibold text-neutral-100">Detail</span>
               <button
                 onClick={() => setShowInfo(false)}
-                className="p-1 rounded text-zinc-400 hover:text-white"
+                className="p-1 rounded text-neutral-400 hover:text-white"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs">
+            <div>
+              <p className="text-neutral-500 mb-0.5">Nama File</p>
+              <p className="font-medium text-neutral-200 break-all">
+                {currentMedia.original_filename}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-neutral-500 mb-0.5">Waktu</p>
+              <p className="text-neutral-200">
+                {formatDate(currentMedia.taken_at || currentMedia.uploaded_at)}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-neutral-500 mb-0.5">Format & Ukuran</p>
+              <p className="text-neutral-200">
+                {formatSize(currentMedia.file_size)} • {currentMedia.mime_type}
+              </p>
+            </div>
+
+            {(currentMedia.width || currentMedia.height) && (
               <div>
-                <p className="text-zinc-500 mb-1">Nama File</p>
-                <p className="font-medium text-zinc-200 break-words">
-                  {currentMedia.original_filename}
+                <p className="text-neutral-500 mb-0.5">Dimensi</p>
+                <p className="text-neutral-200">
+                  {currentMedia.width} × {currentMedia.height} piksel
                 </p>
               </div>
+            )}
 
-              <div className="flex items-start gap-2.5">
-                <Calendar className="h-4 w-4 text-zinc-400 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-zinc-500">Tanggal Pengambilan</p>
-                  <p className="font-medium text-zinc-200">
-                    {formatDate(currentMedia.taken_at || currentMedia.uploaded_at)}
-                  </p>
+            <div className="pt-2 border-t border-neutral-800">
+              <p className="text-neutral-500 mb-1.5">Album</p>
+              {albums.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {albums.map((alb) => (
+                    <span
+                      key={alb.id}
+                      className="px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 text-[11px]"
+                    >
+                      {alb.name}
+                    </span>
+                  ))}
                 </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <HardDrive className="h-4 w-4 text-zinc-400 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-zinc-500">Ukuran & Format</p>
-                  <p className="font-medium text-zinc-200">
-                    {formatSize(currentMedia.file_size)} • {currentMedia.mime_type}
-                  </p>
-                </div>
-              </div>
-
-              {(currentMedia.width || currentMedia.height) && (
-                <div className="flex items-start gap-2.5">
-                  <Maximize2 className="h-4 w-4 text-zinc-400 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-zinc-500">Dimensi Resolusi</p>
-                    <p className="font-medium text-zinc-200">
-                      {currentMedia.width} × {currentMedia.height} px
-                    </p>
-                  </div>
-                </div>
+              ) : (
+                <p className="text-neutral-500 italic">Tidak ada album</p>
               )}
-
-              {/* Album Membership */}
-              <div className="pt-3 border-t border-zinc-800">
-                <div className="flex items-center gap-2 text-zinc-400 mb-2">
-                  <Folder className="h-3.5 w-3.5" />
-                  <span>Album Terkait</span>
-                </div>
-                {albums.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {albums.map((alb) => (
-                      <span
-                        key={alb.id}
-                        className="px-2.5 py-1 rounded-md bg-zinc-800 text-sky-300 text-[11px] font-medium"
-                      >
-                        {alb.name}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-zinc-500 italic">
-                    Media ini belum dimasukkan ke album manapun
-                  </p>
-                )}
-              </div>
             </div>
           </aside>
         )}

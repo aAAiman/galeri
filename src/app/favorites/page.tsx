@@ -7,7 +7,7 @@ import { MediaViewer, MediaItem } from "@/components/MediaViewer";
 import { ActionToolbar } from "@/components/ActionToolbar";
 import { AlbumModal } from "@/components/AlbumModal";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
-import { Heart, Play, Check, Loader2, Image as ImageIcon } from "lucide-react";
+import { Heart, Play, Check, Loader2 } from "lucide-react";
 
 export default function FavoritesPage() {
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
@@ -75,47 +75,38 @@ export default function FavoritesPage() {
   const isSelectionActive = selectedIds.size > 0;
 
   return (
-    <div className="min-h-screen flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+    <div className="min-h-screen flex bg-white dark:bg-black text-neutral-900 dark:text-neutral-100">
       <Navigation onOpenUpload={() => setIsUploadOpen(true)} />
 
-      <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-12">
+      <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800/80 px-4 md:px-8 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <Heart className="h-5 w-5 text-rose-500 fill-rose-500" />
+        <header className="sticky top-0 z-30 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 py-2.5 flex items-center justify-between select-none">
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
               Favorit
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-normal">
-                {mediaList.length} media
-              </span>
             </h1>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Koleksi foto dan video favorit bersama
-            </p>
+            <span className="text-xs text-neutral-500 font-normal">
+              • {mediaList.length} media
+            </span>
           </div>
         </header>
 
-        {/* Media Grid */}
-        <div className="p-4 md:p-8 flex-1">
+        {/* Dense Grid */}
+        <div className="p-2 sm:p-4 flex-1">
           {loading ? (
-            <div className="py-24 flex flex-col items-center justify-center text-zinc-400 gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
-              <p className="text-xs">Memuat favorit...</p>
+            <div className="py-24 flex flex-col items-center justify-center text-neutral-400 gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-xs">Memuat favorit...</span>
             </div>
           ) : mediaList.length === 0 ? (
-            <div className="py-24 flex flex-col items-center justify-center text-center max-w-sm mx-auto">
-              <div className="h-16 w-16 rounded-3xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-rose-500 mb-4">
-                <Heart className="h-8 w-8" />
-              </div>
-              <h3 className="font-semibold text-base text-zinc-800 dark:text-zinc-200">
-                Belum ada media favorit
-              </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Klik ikon hati pada foto atau video di galeri untuk menambahkannya ke koleksi favorit.
+            <div className="py-24 flex flex-col items-center justify-center text-center max-w-xs mx-auto">
+              <p className="text-xs text-neutral-400">Belum ada media favorit</p>
+              <p className="text-[11px] text-neutral-500 mt-1">
+                Tandai foto atau video dengan ikon hati di galeri
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 sm:gap-1.5">
               {mediaList.map((item, index) => {
                 const isSelected = selectedIds.has(item.id);
 
@@ -129,10 +120,10 @@ export default function FavoritesPage() {
                         setViewerIndex(index);
                       }
                     }}
-                    className={`group relative aspect-square rounded-2xl overflow-hidden bg-zinc-200 dark:bg-zinc-900 cursor-pointer border transition-all duration-200 select-none ${
+                    className={`group relative aspect-square bg-neutral-100 dark:bg-neutral-900 overflow-hidden cursor-pointer select-none transition-transform duration-75 ${
                       isSelected
-                        ? "ring-4 ring-sky-500 ring-offset-2 dark:ring-offset-zinc-950 border-sky-500 scale-[0.98]"
-                        : "border-transparent hover:shadow-lg"
+                        ? "ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-black scale-[0.97]"
+                        : ""
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -140,11 +131,11 @@ export default function FavoritesPage() {
                       src={`/api/media/${item.id}/thumbnail`}
                       alt={item.original_filename}
                       loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-cover"
                     />
 
                     <div
-                      className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 transition-opacity ${
+                      className={`absolute inset-0 bg-black/20 transition-opacity ${
                         isSelected || isSelectionActive
                           ? "opacity-100"
                           : "opacity-0 group-hover:opacity-100"
@@ -154,28 +145,27 @@ export default function FavoritesPage() {
                     <button
                       type="button"
                       onClick={(e) => toggleSelect(item.id, e)}
-                      className={`absolute top-2 left-2 z-10 h-6 w-6 rounded-lg flex items-center justify-center transition-all ${
+                      className={`absolute top-1.5 left-1.5 z-10 h-5 w-5 rounded flex items-center justify-center transition-all ${
                         isSelected
-                          ? "bg-sky-500 text-white shadow-md shadow-sky-500/40"
-                          : "bg-black/40 hover:bg-black/70 text-white/70 border border-white/20"
+                          ? "bg-blue-600 text-white"
+                          : "bg-black/40 hover:bg-black/70 text-white/80 border border-white/40 opacity-0 group-hover:opacity-100"
                       }`}
                     >
-                      {isSelected && <Check className="h-4 w-4 stroke-[3]" />}
+                      {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                     </button>
 
                     <button
                       type="button"
                       onClick={(e) => handleToggleFavorite(item.id, e)}
-                      className="absolute top-2 right-2 z-10 p-1.5 rounded-lg text-rose-500 fill-rose-500 bg-black/40 hover:bg-black/70 transition-all"
+                      className="absolute top-1.5 right-1.5 z-10 p-1 rounded text-rose-500 fill-rose-500 bg-black/40 hover:bg-black/70 transition-all cursor-pointer"
                       title="Hapus dari Favorit"
                     >
-                      <Heart className="h-4 w-4 fill-rose-500" />
+                      <Heart className="h-3.5 w-3.5 fill-rose-500" />
                     </button>
 
                     {item.media_type === "video" && (
-                      <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium">
-                        <Play className="h-3 w-3 fill-white" />
-                        <span>Video</span>
+                      <div className="absolute bottom-1 right-1 flex items-center gap-1 px-1 py-0.5 rounded bg-black/60 text-white text-[9px] font-medium">
+                        <Play className="h-2.5 w-2.5 fill-white" />
                       </div>
                     )}
                   </div>
@@ -246,9 +236,9 @@ export default function FavoritesPage() {
 
       <ConfirmationModal
         isOpen={trashConfirmOpen}
-        title="Pindahkan Media ke Trash?"
+        title="Pindahkan ke Trash?"
         message={`${selectedIds.size} media akan dipindahkan ke Trash.`}
-        confirmLabel="Pindahkan ke Trash"
+        confirmLabel="Pindahkan"
         isDangerous={true}
         onConfirm={handleBulkTrash}
         onCancel={() => setTrashConfirmOpen(false)}

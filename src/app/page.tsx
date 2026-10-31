@@ -9,12 +9,10 @@ import { AlbumModal } from "@/components/AlbumModal";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
 import {
   Search,
-  Filter,
   ArrowUpDown,
   Play,
   Heart,
   Check,
-  Image as ImageIcon,
   Loader2,
   Upload,
 } from "lucide-react";
@@ -37,20 +35,19 @@ export default function HomeGalleryPage() {
   // Multi-selection state
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
-  // Album modal state (for Move or Add)
+  // Album modal state
   const [albumModalMode, setAlbumModalMode] = useState<"select_move" | "select_add" | null>(null);
 
-  // Confirmation modal state (for Trash delete)
+  // Confirmation modal state
   const [trashConfirmOpen, setTrashConfirmOpen] = useState(false);
 
-  // Fetch media
   const fetchMedia = useCallback(
     async (currentPage = 1, append = false) => {
       setLoading(true);
       try {
         const params = new URLSearchParams({
           page: currentPage.toString(),
-          limit: "60",
+          limit: "80",
           filter,
           sort,
           search,
@@ -88,7 +85,7 @@ export default function HomeGalleryPage() {
     }
   };
 
-  // Group media by date for timeline
+  // Group media by date for dense timeline
   const groupedMedia = useMemo(() => {
     const groups: { [key: string]: MediaItem[] } = {};
 
@@ -100,8 +97,9 @@ export default function HomeGalleryPage() {
       yesterday.setDate(today.getDate() - 1);
 
       let key = d.toLocaleDateString("id-ID", {
+        weekday: "short",
         day: "numeric",
-        month: "long",
+        month: "short",
         year: "numeric",
       });
 
@@ -118,7 +116,6 @@ export default function HomeGalleryPage() {
     return groups;
   }, [mediaList]);
 
-  // Selection toggles
   const toggleSelect = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedIds((prev) => {
@@ -216,37 +213,37 @@ export default function HomeGalleryPage() {
   const isSelectionActive = selectedIds.size > 0;
 
   return (
-    <div className="min-h-screen flex bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+    <div className="min-h-screen flex bg-white dark:bg-black text-neutral-900 dark:text-neutral-100">
       <Navigation onOpenUpload={() => setIsUploadOpen(true)} />
 
-      {/* Main Container */}
-      <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-12">
-        {/* Sticky Header */}
-        <header className="sticky top-0 z-30 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800/80 px-4 md:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Search bar */}
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+      {/* Main Timeline View */}
+      <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
+        {/* Understated Header */}
+        <header className="sticky top-0 z-30 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 py-2.5 flex items-center justify-between gap-3 select-none">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari nama file foto / video..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-transparent focus:border-sky-500 focus:bg-white dark:focus:bg-zinc-950 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none transition-all"
+              placeholder="Cari foto & video..."
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-900 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-600 transition-all"
             />
           </div>
 
-          {/* Filters & Sorting */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end overflow-x-auto pb-1 sm:pb-0">
-            {/* Filter Tabs */}
-            <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-xl p-1 shrink-0">
+          {/* Filters & Actions */}
+          <div className="flex items-center gap-2">
+            {/* Filter Pills */}
+            <div className="flex items-center bg-neutral-100 dark:bg-neutral-900 rounded-lg p-0.5 text-xs">
               {(["all", "photo", "video"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setFilter(tab)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
                     filter === tab
-                      ? "bg-white dark:bg-zinc-800 text-sky-600 dark:text-sky-400 shadow-sm"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      ? "bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-medium shadow-xs"
+                      : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
                   }`}
                 >
                   {tab === "all" ? "Semua" : tab === "photo" ? "Foto" : "Video"}
@@ -254,66 +251,60 @@ export default function HomeGalleryPage() {
               ))}
             </div>
 
-            {/* Sort selector */}
-            <div className="flex items-center gap-1.5 shrink-0 bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1.5 rounded-xl border border-transparent">
-              <ArrowUpDown className="h-3.5 w-3.5 text-zinc-400" />
+            {/* Sort Dropdown */}
+            <div className="hidden sm:flex items-center gap-1 bg-neutral-100 dark:bg-neutral-900 px-2 py-1 rounded-lg text-xs">
+              <ArrowUpDown className="h-3 w-3 text-neutral-400" />
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="bg-transparent text-xs text-zinc-700 dark:text-zinc-300 focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
               >
-                <option value="date_taken_desc">Terbaru (Tanggal Ambil)</option>
-                <option value="date_taken_asc">Terlama (Tanggal Ambil)</option>
-                <option value="date_uploaded_desc">Terbaru Diunggah</option>
-                <option value="date_uploaded_asc">Terlama Diunggah</option>
-                <option value="filename_asc">Nama File (A-Z)</option>
+                <option value="date_taken_desc">Terbaru</option>
+                <option value="date_taken_asc">Terlama</option>
+                <option value="filename_asc">Nama (A-Z)</option>
               </select>
             </div>
 
-            {/* Mobile upload trigger */}
+            {/* Upload Action on mobile */}
             <button
               onClick={() => setIsUploadOpen(true)}
-              className="md:hidden p-2 rounded-xl bg-sky-600 text-white shrink-0 shadow-md shadow-sky-600/25"
+              className="md:hidden p-1.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-black"
+              title="Unggah"
             >
               <Upload className="h-4 w-4" />
             </button>
           </div>
         </header>
 
-        {/* Gallery Content */}
-        <div className="p-4 md:p-8 space-y-8 flex-1">
+        {/* Dense Timeline Photo Grid (Google Photos style) */}
+        <div className="p-2 sm:p-4 space-y-6 flex-1">
           {loading && mediaList.length === 0 ? (
-            <div className="py-24 flex flex-col items-center justify-center text-zinc-400 gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
-              <p className="text-xs">Memuat galeri foto dan video...</p>
+            <div className="py-24 flex flex-col items-center justify-center text-neutral-400 gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-neutral-500" />
+              <span className="text-xs">Memuat galeri...</span>
             </div>
           ) : mediaList.length === 0 ? (
-            <div className="py-24 flex flex-col items-center justify-center text-center max-w-sm mx-auto">
-              <div className="h-16 w-16 rounded-3xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-400 mb-4">
-                <ImageIcon className="h-8 w-8" />
-              </div>
-              <h3 className="font-semibold text-base text-zinc-800 dark:text-zinc-200">
-                Belum ada media
-              </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 mb-6">
-                Mulai unggah foto dan video kenangan Anda sekarang. File akan disimpan secara aman pada server lokal.
-              </p>
+            <div className="py-24 flex flex-col items-center justify-center text-center max-w-xs mx-auto">
+              <p className="text-xs text-neutral-400 mb-3">Galeri foto dan video kosong</p>
               <button
                 onClick={() => setIsUploadOpen(true)}
-                className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-md shadow-sky-600/20 transition-all flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-black text-xs font-medium transition-colors cursor-pointer"
               >
-                <Upload className="h-4 w-4" />
-                <span>Unggah Foto / Video Sekarang</span>
+                Unggah media pertama
               </button>
             </div>
           ) : (
             Object.entries(groupedMedia).map(([dateLabel, items]) => (
-              <section key={dateLabel} className="space-y-3">
-                <h2 className="text-sm font-semibold tracking-tight text-zinc-600 dark:text-zinc-300">
-                  {dateLabel}
-                </h2>
+              <section key={dateLabel} className="space-y-1.5">
+                {/* Clean Discreet Date Header */}
+                <div className="px-1 pt-2">
+                  <h2 className="text-xs font-medium text-neutral-500 dark:text-neutral-400 tracking-tight">
+                    {dateLabel}
+                  </h2>
+                </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
+                {/* Dense, responsive grid with minimal gutter */}
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 sm:gap-1.5">
                   {items.map((item) => {
                     const isSelected = selectedIds.has(item.id);
                     const globalIndex = mediaList.findIndex(
@@ -330,65 +321,64 @@ export default function HomeGalleryPage() {
                             setViewerIndex(globalIndex);
                           }
                         }}
-                        className={`group relative aspect-square rounded-2xl overflow-hidden bg-zinc-200 dark:bg-zinc-900 cursor-pointer border transition-all duration-200 select-none ${
+                        className={`group relative aspect-square bg-neutral-100 dark:bg-neutral-900 overflow-hidden cursor-pointer select-none transition-transform duration-75 ${
                           isSelected
-                            ? "ring-4 ring-sky-500 ring-offset-2 dark:ring-offset-zinc-950 border-sky-500 scale-[0.98]"
-                            : "border-transparent hover:shadow-lg"
+                            ? "ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-black scale-[0.97]"
+                            : ""
                         }`}
                       >
-                        {/* Thumbnail image */}
+                        {/* Thumbnail */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={`/api/media/${item.id}/thumbnail`}
                           alt={item.original_filename}
                           loading="lazy"
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-opacity duration-150"
                         />
 
-                        {/* Dark gradient overlay on hover or selected */}
+                        {/* Subtle selection hover overlay */}
                         <div
-                          className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 transition-opacity ${
+                          className={`absolute inset-0 bg-black/20 transition-opacity ${
                             isSelected || isSelectionActive
                               ? "opacity-100"
                               : "opacity-0 group-hover:opacity-100"
                           }`}
                         />
 
-                        {/* Checkbox for selection */}
+                        {/* Selection Checkbox */}
                         <button
                           type="button"
                           onClick={(e) => toggleSelect(item.id, e)}
-                          className={`absolute top-2 left-2 z-10 h-6 w-6 rounded-lg flex items-center justify-center transition-all ${
+                          className={`absolute top-1.5 left-1.5 z-10 h-5 w-5 rounded flex items-center justify-center transition-all ${
                             isSelected
-                              ? "bg-sky-500 text-white shadow-md shadow-sky-500/40"
-                              : "bg-black/40 hover:bg-black/70 text-white/70 border border-white/20"
+                              ? "bg-blue-600 text-white"
+                              : "bg-black/40 hover:bg-black/70 text-white/80 border border-white/40 opacity-0 group-hover:opacity-100"
                           }`}
                         >
-                          {isSelected && <Check className="h-4 w-4 stroke-[3]" />}
+                          {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                         </button>
 
-                        {/* Favorite button top right */}
+                        {/* Favorite Indicator / Button */}
                         <button
                           type="button"
                           onClick={(e) => handleToggleFavorite(item.id, e)}
-                          className={`absolute top-2 right-2 z-10 p-1.5 rounded-lg transition-all ${
+                          className={`absolute top-1.5 right-1.5 z-10 p-1 rounded transition-all ${
                             item.is_favorite
-                              ? "text-rose-500 fill-rose-500"
-                              : "text-white/80 hover:text-white bg-black/40 hover:bg-black/70"
+                              ? "text-rose-500 fill-rose-500 opacity-100"
+                              : "text-white/80 hover:text-white bg-black/40 opacity-0 group-hover:opacity-100"
                           }`}
                         >
                           <Heart
-                            className={`h-4 w-4 ${
+                            className={`h-3.5 w-3.5 ${
                               item.is_favorite ? "fill-rose-500" : ""
                             }`}
                           />
                         </button>
 
-                        {/* Video Badge indicator */}
+                        {/* Discreet Video Pill */}
                         {item.media_type === "video" && (
-                          <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium">
-                            <Play className="h-3 w-3 fill-white" />
-                            <span>Video</span>
+                          <div className="absolute bottom-1 right-1 flex items-center gap-1 px-1 py-0.5 rounded bg-black/60 text-white text-[9px] font-medium">
+                            <Play className="h-2.5 w-2.5 fill-white" />
                           </div>
                         )}
                       </div>
@@ -399,22 +389,21 @@ export default function HomeGalleryPage() {
             ))
           )}
 
-          {/* Load more button */}
           {hasMore && (
-            <div className="py-6 flex justify-center">
+            <div className="py-4 flex justify-center">
               <button
                 onClick={loadMore}
                 disabled={loading}
-                className="px-6 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                className="px-4 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
               >
-                {loading ? "Memuat..." : "Muat Lebih Banyak Media"}
+                {loading ? "Memuat..." : "Muat lebih banyak"}
               </button>
             </div>
           )}
         </div>
       </main>
 
-      {/* Floating Action Toolbar when items are selected */}
+      {/* Floating Selection Toolbar */}
       <ActionToolbar
         selectedCount={selectedIds.size}
         onClearSelection={() => setSelectedIds(new Set())}
@@ -434,7 +423,7 @@ export default function HomeGalleryPage() {
         }}
       />
 
-      {/* Fullscreen Media Viewer */}
+      {/* Fullscreen Distraction-free Media Viewer */}
       {viewerIndex !== null && (
         <MediaViewer
           mediaList={mediaList}
@@ -446,7 +435,7 @@ export default function HomeGalleryPage() {
         />
       )}
 
-      {/* Album Selector Modal for Move / Add */}
+      {/* Album Modal */}
       {albumModalMode && (
         <AlbumModal
           isOpen={albumModalMode !== null}
@@ -457,12 +446,12 @@ export default function HomeGalleryPage() {
         />
       )}
 
-      {/* Confirmation Modal for Bulk Trash */}
+      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={trashConfirmOpen}
-        title="Pindahkan Media ke Trash?"
-        message={`${selectedIds.size} media akan dipindahkan ke Trash. Media masih dapat dipulihkan dalam 30 hari.`}
-        confirmLabel="Pindahkan ke Trash"
+        title="Pindahkan ke Trash?"
+        message={`${selectedIds.size} media akan dipindahkan ke Trash.`}
+        confirmLabel="Pindahkan"
         isDangerous={true}
         onConfirm={handleBulkTrash}
         onCancel={() => setTrashConfirmOpen(false)}
