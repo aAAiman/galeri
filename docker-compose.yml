@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: galerikita-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=galeri
+      - DB_PASSWORD=galerikita_secure_password
+      - DB_NAME=galerikita
+      - DB_CONNECTION_LIMIT=5
+      - STORAGE_DIR=/app/storage
+      - STORAGE_QUOTA_BYTES=50000000000
+      - DEFAULT_PASSWORD=galerikita2026
+    volumes:
+      - galerikita_storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    container_name: galerikita-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=galerikita_root_password
+      - MYSQL_DATABASE=galerikita
+      - MYSQL_USER=galeri
+      - MYSQL_PASSWORD=galerikita_secure_password
+    volumes:
+      - galerikita_db_data:/var/lib/mysql
+      - ./galerikita_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "galeri", "-pgalerikita_secure_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: galerikita-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  galerikita_storage:
+    name: galerikita_storage
+  galerikita_db_data:
+    name: galerikita_db_data
+  caddy_data:
+  caddy_config:

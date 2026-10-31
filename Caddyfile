@@ -1,0 +1,21 @@
+# GaleriKita Caddy Reverse Proxy
+{
+    email admin@galerikita.local
+}
+
+:80 {
+    reverse_proxy app:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Stream & buffer settings for video streaming
+    encode zstd gzip
+
+    # Request body size limit up to 50 GB for large video uploads
+    request_body {
+        max_size 50GB
+    }
+}

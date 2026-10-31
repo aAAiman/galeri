@@ -1,0 +1,97 @@
+erDiagram
+    APP_SETTINGS ||--o{ SESSIONS : "invalidates via session_version"
+    APP_SETTINGS {
+        int id PK
+        string password_hash
+        int session_version
+        bigint storage_quota_bytes
+        bigint used_bytes
+        bigint reserved_bytes
+        int trash_retention_days
+        datetime created_at
+        datetime updated_at
+    }
+
+    SESSIONS {
+        string id PK
+        string token_hash UK
+        int session_version
+        datetime expires_at
+        datetime created_at
+    }
+
+    MEDIA ||--o{ ALBUM_MEDIA : "categorized in"
+    MEDIA ||--o{ MEDIA_VARIANTS : "generates"
+    MEDIA ||--o{ PROCESSING_JOBS : "processed by"
+    MEDIA ||--o| ALBUMS : "can be cover of"
+    MEDIA {
+        int id PK
+        string original_filename
+        string storage_key UK
+        string mime_type
+        bigint file_size
+        enum media_type
+        decimal duration_seconds
+        int width
+        int height
+        boolean is_favorite
+        datetime deleted_at
+        datetime purge_requested_at
+        datetime taken_at
+        datetime uploaded_at
+    }
+
+    ALBUMS ||--o{ ALBUM_MEDIA : "contains"
+    ALBUMS ||--o{ UPLOAD_SESSIONS : "target for"
+    ALBUMS {
+        int id PK
+        string name
+        text description
+        int cover_media_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    ALBUM_MEDIA {
+        int album_id PK, FK
+        int media_id PK, FK
+        datetime added_at
+    }
+
+    MEDIA_VARIANTS {
+        int id PK
+        int media_id FK
+        enum variant_type
+        string storage_key UK
+        string mime_type
+        bigint file_size
+        int width
+        int height
+        datetime created_at
+    }
+
+    UPLOAD_SESSIONS {
+        string id PK
+        string tus_upload_id UK
+        int target_album_id FK
+        string original_filename
+        bigint expected_bytes
+        bigint uploaded_bytes
+        enum status
+        bigint reserved_bytes
+        datetime expires_at
+        datetime created_at
+    }
+
+    PROCESSING_JOBS {
+        int id PK
+        int media_id FK
+        enum job_type
+        enum status
+        int attempts
+        int max_attempts
+        text error_message
+        datetime scheduled_at
+        datetime completed_at
+        datetime created_at
+    }
