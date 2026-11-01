@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       "m.deleted_at IS NULL",
       "m.purge_requested_at IS NULL",
     ];
-    const queryParams: unknown[] = [];
+    const whereParams: unknown[] = [];
 
     if (filter === "photo") {
       whereClauses.push("m.media_type = 'image'");
@@ -40,13 +40,14 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       whereClauses.push("m.original_filename LIKE ?");
-      queryParams.push(`%${search}%`);
+      whereParams.push(`%${search}%`);
     }
 
     let joinAlbumClause = "";
+    const joinAlbumParams: unknown[] = [];
     if (albumId) {
       joinAlbumClause = "JOIN album_media am ON am.media_id = m.id AND am.album_id = ?";
-      queryParams.push(parseInt(albumId, 10));
+      joinAlbumParams.push(parseInt(albumId, 10));
     }
 
     let orderByClause = "COALESCE(m.taken_at, m.uploaded_at) DESC, m.id DESC";
@@ -61,6 +62,7 @@ export async function GET(request: NextRequest) {
     }
 
     const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
+    const baseQueryParams = [...joinAlbumParams, ...whereParams];
 
     // Count total items
     const countSql = `
@@ -69,7 +71,7 @@ export async function GET(request: NextRequest) {
       ${joinAlbumClause}
       ${whereSql}
     `;
-    const [countRows] = await pool.query<RowDataPacket[]>(countSql, queryParams);
+    const [countRows] = await pool.query<RowDataPacket[]>(countSql, baseQueryParams);
     const totalCount = countRows[0]?.total ?? 0;
 
     // Fetch media with thumbnail variant if available
@@ -86,8 +88,8 @@ export async function GET(request: NextRequest) {
       LIMIT ? OFFSET ?
     `;
 
-    queryParams.push(limit, offset);
-    const [mediaItems] = await pool.query<RowDataPacket[]>(dataSql, queryParams);
+    const dataQueryParams = [...baseQueryParams, limit, offset];
+    const [mediaItems] = await pool.query<RowDataPacket[]>(dataSql, dataQueryParams);
 
     return NextResponse.json({
       items: mediaItems,

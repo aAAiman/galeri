@@ -78,12 +78,16 @@ export async function POST(request: NextRequest) {
       message: "Password berhasil diperbarui. Seluruh sesi lain telah dikeluarkan.",
     });
 
+    const isHttps =
+      request.headers.get("x-forwarded-proto") === "https" ||
+      request.nextUrl.protocol === "https:";
+
     response.cookies.set({
       name: SESSION_COOKIE_NAME,
       value: newToken,
       expires: expiresAt,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps,
       sameSite: "lax",
       path: "/",
     });

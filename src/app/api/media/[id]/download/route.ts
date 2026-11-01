@@ -45,14 +45,16 @@ export async function GET(
     const webStream = Readable.toWeb(fileStream) as ReadableStream;
 
     const safeFilename = encodeURIComponent(item.original_filename);
+    const sanitizedAscii = item.original_filename.replace(/["\r\n]/g, "_");
 
     return new NextResponse(webStream, {
       status: 200,
       headers: {
         "Content-Length": stat.size.toString(),
         "Content-Type": item.mime_type || "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${item.original_filename}"; filename*=UTF-8''${safeFilename}`,
+        "Content-Disposition": `attachment; filename="${sanitizedAscii}"; filename*=UTF-8''${safeFilename}`,
         "Cache-Control": "private, no-cache",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (error) {

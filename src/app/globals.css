@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant rose (&:where(.rose, .rose *));
+
 :root {
   --background: #fbfbfb;
   --foreground: #18181b;
@@ -8,12 +11,12 @@
   --accent: #2563eb;
 }
 
-.dark {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --border: #27272a;
-  --card: #121215;
-  --accent: #3b82f6;
+.rose {
+  --background: #fff9f9;
+  --foreground: #3a2228;
+  --border: #f4d8de;
+  --card: #ffffff;
+  --accent: #d96b82;
 }
 
 @theme inline {
@@ -51,4 +54,58 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(120, 120, 120, 0.4);
+}
+
+/* Couple Wallpaper Background (Mobile & Desktop) */
+.couple-wallpaper-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.couple-wallpaper-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity 0.4s ease, filter 0.4s ease, background-image 0.4s ease;
+}
+
+.couple-wallpaper-veil {
+  position: absolute;
+  inset: 0;
+  transition: background-color 0.4s ease;
+}
+
+/* Washi tape visual motif */
+.washi-tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 54px;
+  height: 16px;
+  background: rgba(255, 220, 230, 0.7);
+  backdrop-filter: blur(2px);
+  border: 1px dashed rgba(220, 140, 160, 0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+/* Polaroid frame */
+.polaroid-frame {
+  background: white;
+  padding: 8px 8px 22px 8px;
+  box-shadow: 0 8px 24px -4px rgba(180, 100, 120, 0.15), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(245, 215, 225, 0.8);
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.polaroid-frame:hover {
+  transform: translateY(-4px) scale(1.02) !important;
+  box-shadow: 0 14px 30px -4px rgba(180, 100, 120, 0.25), 0 4px 10px -1px rgba(0, 0, 0, 0.08);
 }

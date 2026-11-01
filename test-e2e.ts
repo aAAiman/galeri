@@ -68,7 +68,11 @@ async function runTests() {
 
   // Enqueue thumbnail job and process queue
   await enqueueThumbnailJob(testMediaId);
-  const processedCount = await runJobQueueWorker();
+  let processedCount = 0;
+  let batch = 0;
+  while ((batch = await runJobQueueWorker(20)) > 0) {
+    processedCount += batch;
+  }
   console.log(`✓ Worker processed ${processedCount} queued jobs.`);
 
   // Verify variant generated

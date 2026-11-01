@@ -5,13 +5,31 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get("galerikita_session");
 
-  // Allow static files, favicon, public assets, and api/auth routes
+  // Block probes for source code extraction, hidden files, and exploit scans
+  const lowerPath = pathname.toLowerCase();
+  if (
+    lowerPath.includes(".git") ||
+    lowerPath.includes(".env") ||
+    lowerPath.endsWith(".map") ||
+    lowerPath.endsWith(".sql") ||
+    lowerPath.endsWith(".bak") ||
+    lowerPath.includes("wp-admin") ||
+    lowerPath.includes(".php")
+  ) {
+    return new NextResponse("Access Denied", { status: 403 });
+  }
+
+  // Allow Next.js static bundles, assets, favicon, and robots.txt
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico") ||
-    pathname.startsWith("/api/auth/login") ||
-    pathname.includes(".")
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt"
   ) {
+    return NextResponse.next();
+  }
+
+  // Allow login API endpoint
+  if (pathname === "/api/auth/login") {
     return NextResponse.next();
   }
 

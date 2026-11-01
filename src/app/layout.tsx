@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeWatermark } from "@/components/ThemeWatermark";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,10 +28,37 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
-        {children}
+      <body className="min-h-full flex flex-col bg-[#fcfcfc] rose:bg-[#fff9f9] text-neutral-900 rose:text-[#3a2228] font-sans transition-colors duration-150 relative">
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('galerikita_theme');
+                  var root = document.documentElement;
+                  root.classList.remove('dark', 'rose');
+                  if (saved === 'light') {
+                    // light theme
+                  } else {
+                    // Default to rose (Pink Sakura Romantis)
+                    root.classList.add('rose');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+        <ThemeProvider>
+          <ThemeWatermark />
+          <div className="relative z-10 flex-1 flex flex-col">
+            {children}
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

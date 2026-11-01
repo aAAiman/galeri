@@ -18,6 +18,19 @@ import {
 import { enqueueThumbnailJob } from "@/lib/worker/media-worker";
 import { ResultSetHeader } from "mysql2";
 
+const ALLOWED_EXTENSIONS = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".gif",
+  ".mp4",
+  ".mov",
+  ".webm",
+  ".heic",
+  ".mkv",
+]);
+
 export async function POST(request: NextRequest) {
   try {
     const rawToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
@@ -40,6 +53,16 @@ export async function POST(request: NextRequest) {
     }
 
     const originalFilename = file.name || "media_upload";
+    const ext = path.extname(originalFilename).toLowerCase();
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return NextResponse.json(
+        {
+          error: `Format file ${ext} tidak didukung. Format yang diizinkan: JPG, PNG, WebP, GIF, MP4, MOV, WebM.`,
+        },
+        { status: 400 }
+      );
+    }
+
     const fileSize = file.size;
 
     // Check storage quota

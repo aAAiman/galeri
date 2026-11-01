@@ -116,3 +116,8 @@ CREATE TABLE IF NOT EXISTS `processing_jobs` (
   CONSTRAINT `fk_processing_jobs_media` FOREIGN KEY (`media_id`) REFERENCES `media` (`id`) ON DELETE CASCADE,
   INDEX `idx_jobs_queue` (`status`, `scheduled_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. Initial Seed Data (Default Password: galerikita2026, 50 GB Quota)
+INSERT IGNORE INTO `app_settings` (`id`, `password_hash`, `session_version`, `storage_quota_bytes`, `used_bytes`, `reserved_bytes`, `trash_retention_days`)
+VALUES (1, '$argon2id$v=19$m=19456,t=2,p=1$DhrnXf4Wl5ad9jM3GGQ2fg$GW/KrkWnzeK5x2r3mLnBmcxPmvXYaeAgkVQYMc/ab7I', 1, 50000000000, 0, 0, 30);
+

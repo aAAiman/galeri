@@ -3,7 +3,9 @@ import fsPromises from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 
-const BASE_STORAGE_DIR = path.join(process.cwd(), "storage");
+const BASE_STORAGE_DIR = process.env.STORAGE_DIR
+  ? path.resolve(process.env.STORAGE_DIR)
+  : path.join(process.cwd(), "storage");
 
 export const STORAGE_PATHS = {
   originals: path.join(BASE_STORAGE_DIR, "originals"),
@@ -31,14 +33,14 @@ export function generateStorageKey(originalFilename: string): string {
  * Get absolute path for an original file
  */
 export function getOriginalPath(storageKey: string): string {
-  return path.join(STORAGE_PATHS.originals, storageKey);
+  return path.join(STORAGE_PATHS.originals, path.basename(storageKey));
 }
 
 /**
  * Get absolute path for a variant file (thumbnail, preview, poster)
  */
 export function getVariantPath(storageKey: string): string {
-  return path.join(STORAGE_PATHS.variants, storageKey);
+  return path.join(STORAGE_PATHS.variants, path.basename(storageKey));
 }
 
 /**

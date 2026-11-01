@@ -4,11 +4,33 @@
 }
 
 :80 {
+    # Block access to hidden directories (.git, .env, etc.) and sensitive files
+    @blocked {
+        path */.git*
+        path */.env*
+        path *.map
+        path *.sql
+        path *.md
+        path *.log
+        path *.bak
+        path */.system_generated*
+    }
+    respond @blocked "Access Denied" 403
+
     reverse_proxy app:3000 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         header_up X-Forwarded-For {remote}
         header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
     }
 
     # Stream & buffer settings for video streaming

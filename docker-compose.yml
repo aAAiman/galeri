@@ -8,7 +8,8 @@ services:
     container_name: galerikita-app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # Akses langsung Next.js dibatasi ke localhost, lalu lintas publik diarahkan melalui Caddy
+      - "127.0.0.1:3000:3000"
     environment:
       - NODE_ENV=production
       - DB_HOST=db
@@ -20,6 +21,7 @@ services:
       - STORAGE_DIR=/app/storage
       - STORAGE_QUOTA_BYTES=50000000000
       - DEFAULT_PASSWORD=galerikita2026
+      - SESSION_SECRET=${SESSION_SECRET:-galerikita_super_secure_auth_session_key_2026}
     volumes:
       - galerikita_storage:/app/storage
     depends_on:
@@ -39,7 +41,8 @@ services:
       - galerikita_db_data:/var/lib/mysql
       - ./galerikita_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     ports:
-      - "3306:3306"
+      # Hanya bind ke localhost server untuk mencegah akses database dari luar
+      - "127.0.0.1:3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "galeri", "-pgalerikita_secure_password"]
       interval: 10s

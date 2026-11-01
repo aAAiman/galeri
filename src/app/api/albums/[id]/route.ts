@@ -20,7 +20,17 @@ export async function GET(
 
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT a.*, 
-              COUNT(DISTINCT am.media_id) AS media_count
+              COUNT(DISTINCT am.media_id) AS media_count,
+              COALESCE(
+                a.cover_media_id,
+                (
+                  SELECT am2.media_id 
+                  FROM album_media am2 
+                  JOIN media m2 ON m2.id = am2.media_id 
+                  WHERE am2.album_id = a.id AND m2.deleted_at IS NULL AND m2.purge_requested_at IS NULL
+                  ORDER BY am2.added_at DESC LIMIT 1
+                )
+              ) AS effective_cover_id
        FROM albums a
        LEFT JOIN album_media am ON am.album_id = a.id
        LEFT JOIN media m ON m.id = am.media_id AND m.deleted_at IS NULL AND m.purge_requested_at IS NULL

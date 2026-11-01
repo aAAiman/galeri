@@ -1,21 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   X,
   ChevronLeft,
   ChevronRight,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
   Heart,
   Download,
   Trash2,
   Info,
-  Calendar,
-  HardDrive,
-  Maximize2,
-  Folder,
 } from "lucide-react";
 
 export interface MediaItem {
@@ -53,13 +46,26 @@ export function MediaViewer({
 }: MediaViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const touchStartRef = useRef<{
+    dist?: number;
+    initialZoom?: number;
+    lastX?: number;
+    lastY?: number;
+  }>({});
+  const lastTapRef = useRef<number>(0);
   const [showInfo, setShowInfo] = useState(false);
   const [albums, setAlbums] = useState<{ id: number; name: string }[]>([]);
 
-  useEffect(() => {
+  const [prevInitialIndex, setPrevInitialIndex] = useState(initialIndex);
+  if (initialIndex !== prevInitialIndex) {
+    setPrevInitialIndex(initialIndex);
     setCurrentIndex(initialIndex);
     setZoomLevel(1);
-  }, [initialIndex, isOpen]);
+    setPanOffset({ x: 0, y: 0 });
+  }
 
   const currentMedia = mediaList[currentIndex];
 
@@ -76,11 +82,13 @@ export function MediaViewer({
 
   const handlePrev = useCallback(() => {
     setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : mediaList.length - 1));
   }, [mediaList.length]);
 
   const handleNext = useCallback(() => {
     setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
     setCurrentIndex((prev) => (prev < mediaList.length - 1 ? prev + 1 : 0));
   }, [mediaList.length]);
 
@@ -96,6 +104,117 @@ export function MediaViewer({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, handlePrev, handleNext, onClose]);
+
+  // Mouse wheel scroll to zoom (PC)
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!currentMedia || currentMedia.media_type !== "image") return;
+
+    if (e.deltaY < 0) {
+      // Scroll Up -> Zoom In
+      setZoomLevel((z) => Math.min(4, Number((z + 0.3).toFixed(2))));
+    } else {
+      // Scroll Down -> Zoom Out
+      setZoomLevel((z) => {
+        const next = Math.max(1, Number((z - 0.3).toFixed(2)));
+        if (next === 1) setPanOffset({ x: 0, y: 0 });
+        return next;
+      });
+    }
+  };
+
+  // Double click / Double tap to toggle 1x and 2.5x
+  const handleDoubleClick = () => {
+    if (!currentMedia || currentMedia.media_type !== "image") return;
+    setZoomLevel((z) => {
+      if (z > 1) {
+        setPanOffset({ x: 0, y: 0 });
+        return 1;
+      }
+      return 2.5;
+    });
+  };
+
+  // Mouse drag panning on PC when zoomed
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel <= 1 || currentMedia?.media_type !== "image") return;
+    if (e.button !== 0) return;
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX - panOffset.x,
+      y: e.clientY - panOffset.y,
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || zoomLevel <= 1) return;
+    setPanOffset({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Touch pinch & pan gestures on HP/mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (currentMedia?.media_type !== "image") return;
+
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchStartRef.current = {
+        dist,
+        initialZoom: zoomLevel,
+      };
+    } else if (e.touches.length === 1) {
+      touchStartRef.current = {
+        lastX: e.touches[0].clientX,
+        lastY: e.touches[0].clientY,
+      };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (currentMedia?.media_type !== "image") return;
+
+    if (e.touches.length === 2 && touchStartRef.current.dist && touchStartRef.current.initialZoom) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = dist / touchStartRef.current.dist;
+      const nextZoom = Math.min(4, Math.max(1, Number((touchStartRef.current.initialZoom * factor).toFixed(2))));
+      setZoomLevel(nextZoom);
+      if (nextZoom === 1) setPanOffset({ x: 0, y: 0 });
+    } else if (
+      e.touches.length === 1 &&
+      zoomLevel > 1 &&
+      touchStartRef.current.lastX !== undefined &&
+      touchStartRef.current.lastY !== undefined
+    ) {
+      const dx = e.touches[0].clientX - touchStartRef.current.lastX;
+      const dy = e.touches[0].clientY - touchStartRef.current.lastY;
+      touchStartRef.current.lastX = e.touches[0].clientX;
+      touchStartRef.current.lastY = e.touches[0].clientY;
+      setPanOffset((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) {
+      const now = Date.now();
+      if (now - lastTapRef.current < 300) {
+        // Double tap on mobile
+        handleDoubleClick();
+      }
+      lastTapRef.current = now;
+    }
+    touchStartRef.current = {};
+  };
 
   if (!isOpen || !currentMedia) return null;
 
@@ -140,36 +259,8 @@ export function MediaViewer({
           </div>
         </div>
 
-        {/* Action Controls */}
+        {/* Action Controls - Clean without zoom buttons */}
         <div className="flex items-center gap-0.5">
-          {currentMedia.media_type === "image" && (
-            <div className="hidden sm:flex items-center mr-2">
-              <button
-                onClick={() => setZoomLevel((z) => Math.max(0.5, z - 0.25))}
-                className="p-1.5 rounded hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
-                title="Perkecil"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setZoomLevel((z) => Math.min(3, z + 0.25))}
-                className="p-1.5 rounded hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
-                title="Perbesar"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </button>
-              {zoomLevel !== 1 && (
-                <button
-                  onClick={() => setZoomLevel(1)}
-                  className="p-1.5 rounded hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
-                  title="Reset Zoom"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          )}
-
           <button
             onClick={() => onToggleFavorite && onToggleFavorite(currentMedia.id)}
             className={`p-1.5 rounded hover:bg-neutral-800 transition-colors ${
@@ -227,17 +318,37 @@ export function MediaViewer({
           </button>
         )}
 
-        <div className="w-full h-full flex items-center justify-center p-2 sm:p-6">
+        <div className="w-full h-full flex items-center justify-center p-2 sm:p-6 overflow-hidden">
           {currentMedia.media_type === "image" ? (
             <div
-              className="flex items-center justify-center w-full h-full transition-transform duration-100 ease-out"
-              style={{ transform: `scale(${zoomLevel})` }}
+              className={`flex items-center justify-center w-full h-full transition-transform ${
+                isDragging ? "duration-0" : "duration-150 ease-out"
+              } ${
+                zoomLevel > 1
+                  ? isDragging
+                    ? "cursor-grabbing"
+                    : "cursor-grab"
+                  : "cursor-default"
+              }`}
+              style={{
+                transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+                touchAction: zoomLevel > 1 ? "none" : "pan-y",
+              }}
+              onWheel={handleWheel}
+              onDoubleClick={handleDoubleClick}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`/api/media/${currentMedia.id}/file`}
                 alt={currentMedia.original_filename}
-                className="max-h-[92vh] max-w-[94vw] object-contain select-none"
+                className="max-h-[92vh] max-w-[94vw] object-contain select-none pointer-events-none"
                 draggable={false}
               />
             </div>
@@ -254,6 +365,20 @@ export function MediaViewer({
             </video>
           )}
         </div>
+
+        {/* Subtle Zoom Reset Pill when Zoomed */}
+        {zoomLevel > 1 && (
+          <button
+            onClick={() => {
+              setZoomLevel(1);
+              setPanOffset({ x: 0, y: 0 });
+            }}
+            className="absolute bottom-5 z-20 px-3 py-1 bg-black/75 hover:bg-black/90 text-white text-[11px] rounded-full backdrop-blur-md transition-all border border-white/10 shadow-lg cursor-pointer"
+            title="Klik untuk kembali ke ukuran normal"
+          >
+            {zoomLevel}x • Ketuk / Klik ganda untuk reset
+          </button>
+        )}
 
         {mediaList.length > 1 && (
           <button

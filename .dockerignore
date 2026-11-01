@@ -1,0 +1,31 @@
+# Git repository & history (CRITICAL: prevents source code extraction via git-dumper)
+.git
+.gitignore
+
+# Sensitive environment credentials
+.env
+.env.local
+.env.*.local
+
+# Local storage directory and user media files
+storage/
+storage/originals/
+storage/variants/
+storage/temp/
+
+# Dependencies and caches
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Documentation, test scripts, and dev files
+*.md
+*.mmd
+test-e2e.ts
+Caddyfile
+docker-compose.yml
+Dockerfile
+.dockerignore

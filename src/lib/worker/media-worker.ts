@@ -6,7 +6,6 @@ import {
   getOriginalPath,
   getVariantPath,
   safeDeleteFile,
-  STORAGE_PATHS,
 } from "../storage/filesystem";
 import { deductUsedBytes } from "../storage/quota";
 import { RowDataPacket } from "mysql2";
@@ -37,16 +36,6 @@ async function processThumbnailJob(job: JobRow): Promise<void> {
 
     const width = metadata.width || null;
     const height = metadata.height || null;
-    let takenAt: Date | null = null;
-
-    if (metadata.exif) {
-      try {
-        const exifData = (await sharp(originalPath).metadata()).exif;
-        // Basic EXIF date parsing if present
-      } catch (e) {
-        // Ignore exif parse error
-      }
-    }
 
     // Update dimensions on media table
     await pool.query(

@@ -71,6 +71,7 @@ export async function GET(
           "Content-Length": chunkSize.toString(),
           "Content-Type": item.mime_type || "application/octet-stream",
           "Cache-Control": "private, max-age=3600",
+          "X-Content-Type-Options": "nosniff",
         },
       });
     }
@@ -86,6 +87,7 @@ export async function GET(
         "Content-Type": item.mime_type || "application/octet-stream",
         "Accept-Ranges": "bytes",
         "Cache-Control": "private, max-age=3600",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (error) {

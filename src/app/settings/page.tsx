@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
+import { useTheme } from "@/components/ThemeProvider";
 import {
   HardDrive,
   KeyRound,
-  Moon,
   Sun,
+  Heart,
+  Sparkles,
   LogOut,
   Loader2,
   Trash2,
@@ -25,6 +27,8 @@ interface StorageData {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { theme, setTheme, toggleTheme } = useTheme();
+
   const [storage, setStorage] = useState<StorageData | null>(null);
   const [loadingStorage, setLoadingStorage] = useState(true);
 
@@ -36,16 +40,13 @@ export default function SettingsPage() {
   const [pwdSuccess, setPwdSuccess] = useState("");
   const [pwdError, setPwdError] = useState("");
 
-  const [isDark, setIsDark] = useState(true);
+  // Background customization state
+  const [bgMode, setBgMode] = useState("wallpaper");
+  const [bgPhoto, setBgPhoto] = useState("/couple/collage.jpg");
+  const [bgClarity, setBgClarity] = useState("balanced");
+  const [bgBlur, setBgBlur] = useState("none");
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    }
-    fetchStorage();
-  }, []);
-
-  const fetchStorage = async () => {
+  const fetchStorage = useCallback(async () => {
     setLoadingStorage(true);
     try {
       const res = await fetch("/api/storage/status");
@@ -58,16 +59,40 @@ export default function SettingsPage() {
     } finally {
       setLoadingStorage(false);
     }
-  };
+  }, []);
 
-  const toggleTheme = () => {
-    const nextDark = !isDark;
-    setIsDark(nextDark);
-    if (nextDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+  useEffect(() => {
+    fetchStorage();
+    try {
+      const savedMode = localStorage.getItem("galerikita_bg_mode");
+      const savedPhoto = localStorage.getItem("galerikita_bg_photo");
+      const savedClarity = localStorage.getItem("galerikita_bg_clarity");
+      const savedBlur = localStorage.getItem("galerikita_bg_blur");
+
+      if (savedMode) setBgMode(savedMode);
+      if (savedPhoto) setBgPhoto(savedPhoto);
+      if (savedClarity) setBgClarity(savedClarity);
+      if (savedBlur) setBgBlur(savedBlur);
+    } catch {}
+  }, [fetchStorage]);
+
+  const handleUpdateBg = (
+    mode: string,
+    photo: string,
+    clarity: string,
+    blur: string
+  ) => {
+    setBgMode(mode);
+    setBgPhoto(photo);
+    setBgClarity(clarity);
+    setBgBlur(blur);
+    try {
+      localStorage.setItem("galerikita_bg_mode", mode);
+      localStorage.setItem("galerikita_bg_photo", photo);
+      localStorage.setItem("galerikita_bg_clarity", clarity);
+      localStorage.setItem("galerikita_bg_blur", blur);
+      window.dispatchEvent(new Event("galerikita_bg_updated"));
+    } catch {}
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -124,12 +149,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-white dark:bg-black text-neutral-900 dark:text-neutral-100">
+    <div className="min-h-screen flex bg-transparent text-neutral-900">
       <Navigation />
 
       <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 px-4 py-2.5">
+        <header className="sticky top-0 z-30 bg-white/80 rose:bg-[#fff9f9]/85 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 py-2.5">
           <h1 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
             Pengaturan
           </h1>
@@ -167,13 +192,12 @@ export default function SettingsPage() {
                   {/* Clean progress meter */}
                   <div className="w-full bg-neutral-100 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        storage.percentageUsed >= 90
+                      className={`h-full rounded-full transition-all duration-300 ${storage.percentageUsed >= 90
                           ? "bg-rose-500"
                           : storage.percentageUsed >= 80
-                          ? "bg-amber-500"
-                          : "bg-blue-600"
-                      }`}
+                            ? "bg-amber-500"
+                            : "bg-blue-600"
+                        }`}
                       style={{ width: `${Math.min(100, storage.percentageUsed)}%` }}
                     />
                   </div>
@@ -253,19 +277,188 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* Section: Appearance & Trash */}
+          {/* Section: Appearance & Themes */}
           <section className="space-y-3">
-            <div className="flex items-center justify-between border border-neutral-200 dark:border-neutral-800 rounded-xl p-3.5">
-              <div className="flex items-center gap-2.5">
-                {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                <span className="text-xs font-medium">Tema Gelap</span>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-500 rose:text-[#a38088]">
+              <Sparkles className="h-3.5 w-3.5 text-[#d96b82]" />
+              <span>Tema Tampilan</span>
+            </div>
+
+            <div className="border border-neutral-200 rose:border-[#f4d8de] bg-white rose:bg-white/80 rounded-xl p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                {/* Rose Romance Theme Card */}
+                <button
+                  type="button"
+                  onClick={() => setTheme("rose")}
+                  className={`flex flex-col items-center gap-2 p-3.5 rounded-xl border text-center transition-all cursor-pointer ${
+                    theme === "rose"
+                      ? "border-[#d96b82] ring-2 ring-[#d96b82]/30 bg-[#fcecef] text-[#d96b82] font-semibold"
+                      : "border-neutral-200 rose:border-[#f4d8de] hover:border-[#d96b82] text-neutral-700 rose:text-[#3a2228] bg-white/70"
+                  }`}
+                >
+                  <Heart className="h-5 w-5 fill-[#d96b82] text-[#d96b82]" />
+                  <span className="text-xs font-medium">Pink Romantis</span>
+                  <span className="text-[10px] text-[#c87385] opacity-90">🌸 Sakura & Nuansa Cinta</span>
+                </button>
+
+                {/* Light Theme Card */}
+                <button
+                  type="button"
+                  onClick={() => setTheme("light")}
+                  className={`flex flex-col items-center gap-2 p-3.5 rounded-xl border text-center transition-all cursor-pointer ${
+                    theme === "light"
+                      ? "border-blue-500 ring-2 ring-blue-500/20 bg-neutral-100 text-neutral-900 font-semibold"
+                      : "border-neutral-200 hover:border-neutral-400 text-neutral-700 bg-white/70"
+                  }`}
+                >
+                  <Sun className="h-5 w-5 text-amber-500" />
+                  <span className="text-xs font-medium">Terang Bersih</span>
+                  <span className="text-[10px] opacity-70">☀️ Netral & Minimalis</span>
+                </button>
               </div>
-              <button
-                onClick={toggleTheme}
-                className="px-2.5 py-1 rounded text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
-              >
-                {isDark ? "Aktif" : "Nonaktif"}
-              </button>
+            </div>
+
+            {/* Section: Couple Wallpaper & Background (Mobile & Desktop) */}
+            <div className="border border-neutral-200 rose:border-[#f4d8de] bg-white/90 rose:bg-white/90 backdrop-blur-md rounded-xl p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-[#d96b82] fill-[#d96b82]" />
+                  <span className="text-xs font-semibold text-neutral-800 rose:text-[#3a2228]">
+                    Foto Background / Wallpaper (HP & Laptop)
+                  </span>
+                </div>
+                <span className="text-[10px] text-[#d96b82] bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 font-medium">
+                  Tampak di Semua Layar
+                </span>
+              </div>
+
+              {/* Photos Picker */}
+              <div>
+                <span className="text-[11px] font-medium text-neutral-700 rose:text-[#3a2228] block mb-2">
+                  Pilih Foto Berdua untuk Dijadikan Background:
+                </span>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {[
+                    { src: "/couple/collage.jpg", label: "Kolase 4 Pose" },
+                    { src: "/couple/strip.png", label: "Neo Photo Strip" },
+                    { src: "/couple/portrait.jpg", label: "Kesayangan" },
+                    { src: "/couple/candid.jpg", label: "Selfie Ceria" },
+                    { src: "/couple/stickers.jpg", label: "Stiker Cetak" },
+                    { src: "/couple/closeup.jpg", label: "Close-up" },
+                  ].map((item) => {
+                    const isSelected = bgPhoto === item.src;
+                    return (
+                      <button
+                        key={item.src}
+                        type="button"
+                        onClick={() => handleUpdateBg("wallpaper", item.src, bgClarity, bgBlur)}
+                        className={`flex flex-col items-center p-1.5 rounded-xl border text-center transition-all cursor-pointer relative ${
+                          isSelected
+                            ? "border-[#d96b82] ring-2 ring-[#d96b82]/30 bg-rose-50/70"
+                            : "border-neutral-200 rose:border-[#f4d8de] hover:border-[#d96b82] bg-white"
+                        }`}
+                      >
+                        <div className="h-16 w-full rounded-lg overflow-hidden mb-1 relative bg-neutral-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.src}
+                            alt={item.label}
+                            className="w-full h-full object-cover"
+                          />
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 bg-[#d96b82] text-white rounded-full p-0.5 shadow-xs">
+                              <span className="text-[9px] block px-1 font-bold">✓</span>
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-medium text-neutral-700 rose:text-[#3a2228] truncate w-full">
+                          {item.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Clarity / Visibility Control */}
+              <div>
+                <span className="text-[11px] font-medium text-neutral-700 rose:text-[#3a2228] block mb-2">
+                  Kejelasan Foto di Layar Handphone:
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: "clear", label: "Jelas (40%)", desc: "Foto sangat terlihat" },
+                    { id: "balanced", label: "Sedang (28%)", desc: "Seimbang & rapi" },
+                    { id: "subtle", label: "Halus (16%)", desc: "Aksen samar" },
+                  ].map((cl) => (
+                    <button
+                      key={cl.id}
+                      type="button"
+                      onClick={() => handleUpdateBg("wallpaper", bgPhoto, cl.id, bgBlur)}
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                        bgClarity === cl.id && bgMode === "wallpaper"
+                          ? "border-[#d96b82] ring-2 ring-[#d96b82]/20 bg-[#fcecef] text-[#d96b82] font-semibold"
+                          : "border-neutral-200 rose:border-[#f4d8de] text-neutral-700 bg-white"
+                      }`}
+                    >
+                      <span className="text-xs block">{cl.label}</span>
+                      <span className="text-[9px] opacity-75">{cl.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Blur / Sharpness Control */}
+              <div>
+                <span className="text-[11px] font-medium text-neutral-700 rose:text-[#3a2228] block mb-2">
+                  Ketajaman Foto Wajah & Momen:
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateBg("wallpaper", bgPhoto, bgClarity, "none")}
+                    className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                      bgBlur === "none" && bgMode === "wallpaper"
+                        ? "border-[#d96b82] ring-2 ring-[#d96b82]/20 bg-[#fcecef] text-[#d96b82] font-semibold"
+                        : "border-neutral-200 rose:border-[#f4d8de] text-neutral-700 bg-white"
+                    }`}
+                  >
+                    <span className="text-xs block">✨ Jernih & Asli (Tanpa Blur)</span>
+                    <span className="text-[9px] opacity-75">Wajah & momen berdua terlihat tajam</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateBg("wallpaper", bgPhoto, bgClarity, "soft")}
+                    className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                      bgBlur === "soft" && bgMode === "wallpaper"
+                        ? "border-[#d96b82] ring-2 ring-[#d96b82]/20 bg-[#fcecef] text-[#d96b82] font-semibold"
+                        : "border-neutral-200 rose:border-[#f4d8de] text-neutral-700 bg-white"
+                    }`}
+                  >
+                    <span className="text-xs block">🌸 Sentuhan Lembut (Soft)</span>
+                    <span className="text-[9px] opacity-75">Sedikit blur artistik</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Wallpaper toggle */}
+              <div className="pt-2 border-t border-neutral-100 rose:border-rose-100 flex items-center justify-between">
+                <span className="text-xs text-neutral-600 rose:text-[#5a3840]">
+                  Gunakan Foto Sebagai Background
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleUpdateBg(bgMode === "wallpaper" ? "none" : "wallpaper", bgPhoto, bgClarity, bgBlur)}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                    bgMode === "wallpaper"
+                      ? "bg-[#d96b82] text-white"
+                      : "bg-neutral-200 text-neutral-700"
+                  }`}
+                >
+                  {bgMode === "wallpaper" ? "Aktif" : "Nonaktif (Polos)"}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between border border-neutral-200 dark:border-neutral-800 rounded-xl p-3.5">
