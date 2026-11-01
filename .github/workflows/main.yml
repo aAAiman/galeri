@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Update Code and Restart Docker
         run: |
-          et -e
+          set -e
           cd /var/www/galeri
           git pull --ff-only origin main
           docker compose up -d --build
