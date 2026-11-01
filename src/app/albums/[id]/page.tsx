@@ -11,6 +11,8 @@ import { AlbumModal } from "@/components/AlbumModal";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { PhotoThumbnail } from "@/components/PhotoThumbnail";
 import { useTheme } from "@/components/ThemeProvider";
+import { useGridZoom } from "@/hooks/useGridZoom";
+import { GridZoomControls } from "@/components/GridZoomControls";
 import {
   ChevronLeft,
   Upload,
@@ -19,6 +21,7 @@ import {
   Play,
   Heart,
   Check,
+  CheckSquare,
   Loader2,
   Image as ImageIcon,
 } from "lucide-react";
@@ -59,6 +62,14 @@ function AlbumDetailContent({
 }) {
   const router = useRouter();
   const { theme } = useTheme();
+  const {
+    zoomLevel,
+    zoomIn,
+    zoomOut,
+    gridClass,
+    canZoomIn,
+    canZoomOut,
+  } = useGridZoom();
   const resolvedParams = use(params);
   const albumId = parseInt(resolvedParams.id, 10);
 
@@ -113,6 +124,19 @@ function AlbumDetailContent({
 
   useEffect(() => {
     fetchAlbumData();
+
+    const handleRefresh = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const targetId = customEvent.detail?.targetAlbumId;
+      if (!targetId || targetId === albumId) {
+        fetchAlbumData();
+      }
+    };
+
+    window.addEventListener("galerikita:refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("galerikita:refresh", handleRefresh);
+    };
   }, [albumId]);
 
   const toggleSelect = (id: number, e: React.MouseEvent) => {
@@ -210,6 +234,15 @@ function AlbumDetailContent({
   };
 
   const isSelectionActive = selectedIds.size > 0;
+  const isAllSelected = mediaList.length > 0 && selectedIds.size === mediaList.length;
+
+  const handleToggleSelectAll = () => {
+    if (selectedIds.size === mediaList.length && mediaList.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(mediaList.map((m) => m.id)));
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-transparent text-neutral-900 rose:text-[#3a2228] transition-colors relative">
@@ -239,6 +272,43 @@ function AlbumDetailContent({
           </div>
 
           <div className="flex items-center gap-2">
+            <GridZoomControls
+              zoomLevel={zoomLevel}
+              canZoomIn={canZoomIn}
+              canZoomOut={canZoomOut}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+            />
+
+            {mediaList.length > 0 && (
+              <button
+                type="button"
+                onClick={handleToggleSelectAll}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer select-none ${
+                  selectedIds.size > 0
+                    ? "bg-blue-600 text-white rose:bg-[#d96b82] rose:text-white shadow-xs"
+                    : "bg-neutral-100 dark:bg-neutral-800 rose:bg-[#fcecef] text-neutral-600 dark:text-neutral-300 rose:text-[#7a5c63] hover:text-neutral-900 rose:hover:text-[#d96b82] border border-transparent rose:border-[#f4d8de]"
+                }`}
+                title={
+                  isAllSelected
+                    ? "Batalkan pilihan semua foto"
+                    : "Pilih semua foto"
+                }
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">
+                  {isAllSelected
+                    ? "Batal Semua"
+                    : selectedIds.size > 0
+                    ? `${selectedIds.size} Dipilih`
+                    : "Pilih Semua"}
+                </span>
+                <span className="sm:hidden">
+                  {selectedIds.size > 0 ? selectedIds.size : "Pilih"}
+                </span>
+              </button>
+            )}
+
             <button
               onClick={() => setIsUploadOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 dark:bg-white rose:bg-[#d96b82] text-white dark:text-black rose:text-white text-xs font-medium cursor-pointer shadow-xs hover:bg-neutral-800 dark:hover:bg-neutral-200 rose:hover:bg-[#c7556e] transition-colors"
@@ -257,7 +327,7 @@ function AlbumDetailContent({
 
             <button
               onClick={() => setDeleteConfirmOpen(true)}
-              className="p-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 rose:hover:bg-[#fcecef] text-neutral-500 hover:text-rose-500 transition-colors"
+              className="p-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 rose:hover:bg-[#fcecef] text-neutral-500 rose:text-[#d96b82] hover:text-rose-500 rose:hover:text-rose-600 transition-colors"
               title="Hapus Album"
             >
               <Trash2 className="h-4 w-4" />
@@ -336,7 +406,7 @@ function AlbumDetailContent({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1.5 transition-all">
+            <div className={`grid ${gridClass} transition-all duration-200`}>
               {mediaList.map((item, index) => {
                 const isSelected = selectedIds.has(item.id);
 
@@ -366,6 +436,9 @@ function AlbumDetailContent({
 
       <ActionToolbar
         selectedCount={selectedIds.size}
+        totalCount={mediaList.length}
+        isAllSelected={isAllSelected}
+        onToggleSelectAll={handleToggleSelectAll}
         inAlbumContext={true}
         onClearSelection={() => setSelectedIds(new Set())}
         onRemoveFromAlbum={handleRemoveFromAlbum}

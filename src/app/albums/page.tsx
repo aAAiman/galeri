@@ -49,6 +49,11 @@ export default function AlbumsPage() {
 
   useEffect(() => {
     fetchAlbums();
+    const handleRefresh = () => fetchAlbums();
+    window.addEventListener("galerikita:refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("galerikita:refresh", handleRefresh);
+    };
   }, [search]);
 
   const handleCreateAlbum = async (

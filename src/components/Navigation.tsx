@@ -16,6 +16,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
+import { useUpload } from "./UploadContext";
 
 interface NavigationProps {
   onOpenUpload?: () => void;
@@ -33,6 +34,7 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, cycleTheme } = useTheme();
+  const { openFilePicker } = useUpload();
   const [sidebarAlbums, setSidebarAlbums] = useState<SidebarAlbum[]>([]);
   const coupleMoments = [
     { src: "/couple/candid.jpg", caption: "Lucu & Bahagia ♡" },
@@ -110,18 +112,20 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
           </div>
 
           {/* Upload Button */}
-          {onOpenUpload && (
-            <button
-              onClick={onOpenUpload}
-              className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-xs transition-colors cursor-pointer ${theme === "rose"
-                ? "bg-[#d96b82] hover:bg-[#c7556e] text-white shadow-sm"
-                : "bg-neutral-900 dark:bg-neutral-100 hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-900"
-                }`}
-            >
-              <Upload className="h-3.5 w-3.5 stroke-[2]" />
-              <span>Unggah</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (onOpenUpload) onOpenUpload();
+              else openFilePicker();
+            }}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-xs transition-colors cursor-pointer ${theme === "rose"
+              ? "bg-[#d96b82] hover:bg-[#c7556e] text-white shadow-sm"
+              : "bg-neutral-900 dark:bg-neutral-100 hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-900"
+              }`}
+          >
+            <Upload className="h-3.5 w-3.5 stroke-[2]" />
+            <span>Unggah</span>
+          </button>
 
           {/* Navigation Links */}
           <nav className="space-y-0.5 pt-1">
@@ -279,18 +283,17 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
             className="
               w-full
               flex items-center gap-2.5
-              px-3 py-3
+              px-3 py-2.5
               text-left text-xs font-medium
-              rounded-lg
-              border border-transparent
-              text-neutral-500
-              hover:text-rose-600
-              dark:hover:text-rose-400
-              hover:bg-rose-50
-              dark:hover:bg-neutral-900
-              hover:border-rose-200
+              rounded-xl
+              border border-neutral-200/70 dark:border-neutral-800 rose:border-[#f4d8de]
+              text-neutral-600 dark:text-neutral-400 rose:text-[#a38088]
+              hover:text-rose-600 dark:hover:text-rose-400 rose:hover:text-[#d96b82]
+              hover:bg-rose-50 dark:hover:bg-neutral-900 rose:hover:bg-[#faebee]
+              hover:border-rose-300 dark:hover:border-rose-900 rose:hover:border-[#d96b82]/40
               transition-all
               cursor-pointer
+              shadow-2xs
             "
           >
             <LogOut className="h-3.5 w-3.5" />

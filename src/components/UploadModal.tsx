@@ -11,13 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-interface UploadFileItem {
-  id: string;
-  file: File;
-  progress: number;
-  status: "waiting" | "uploading" | "completed" | "failed";
-  errorMessage?: string;
-}
+import { useUpload } from "./UploadContext";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -32,11 +26,10 @@ export function UploadModal({
   onClose,
   targetAlbumId,
   targetAlbumName,
-  onUploadSuccess,
 }: UploadModalProps) {
-  const [items, setItems] = useState<UploadFileItem[]>([]);
+  const { uploadFiles } = useUpload();
+  const [items, setItems] = useState<{ id: string; file: File }[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -66,11 +59,9 @@ export function UploadModal({
   };
 
   const addFiles = (files: File[]) => {
-    const newItems: UploadFileItem[] = files.map((file) => ({
+    const newItems = files.map((file) => ({
       id: Math.random().toString(36).substring(2, 9),
       file,
-      progress: 0,
-      status: "waiting",
     }));
 
     setItems((prev) => [...prev, ...newItems]);
@@ -80,102 +71,13 @@ export function UploadModal({
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
-  const uploadFile = async (item: UploadFileItem) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", item.file);
-      if (targetAlbumId) {
-        formData.append("targetAlbumId", targetAlbumId.toString());
-      }
-
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/upload/direct");
-
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            setItems((prev) =>
-              prev.map((i) =>
-                i.id === item.id ? { ...i, progress: percent } : i
-              )
-            );
-          }
-        };
-
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            setItems((prev) =>
-              prev.map((i) =>
-                i.id === item.id
-                  ? { ...i, progress: 100, status: "completed" }
-                  : i
-              )
-            );
-            resolve();
-          } else {
-            let errorMsg = "Upload gagal";
-            try {
-              const res = JSON.parse(xhr.responseText);
-              errorMsg = res.error || errorMsg;
-            } catch {
-              // ignore
-            }
-            setItems((prev) =>
-              prev.map((i) =>
-                i.id === item.id
-                  ? { ...i, status: "failed", errorMessage: errorMsg }
-                  : i
-              )
-            );
-            reject(new Error(errorMsg));
-          }
-        };
-
-        xhr.onerror = () => {
-          setItems((prev) =>
-            prev.map((i) =>
-              i.id === item.id
-                ? { ...i, status: "failed", errorMessage: "Koneksi terputus" }
-                : i
-            )
-          );
-          reject(new Error("Network error"));
-        };
-
-        xhr.send(formData);
-      });
-    } catch {
-      // handeled in xhr
-    }
+  const startUploads = () => {
+    if (items.length === 0) return;
+    const filesToUpload = items.map((i) => i.file);
+    uploadFiles(filesToUpload, targetAlbumId, targetAlbumName);
+    setItems([]);
+    onClose();
   };
-
-  const startUploads = async () => {
-    setIsProcessing(true);
-    const waitingItems = items.filter((i) => i.status === "waiting");
-
-    const queue = [...waitingItems];
-    const worker = async () => {
-      while (queue.length > 0) {
-        const next = queue.shift();
-        if (!next) break;
-        setItems((prev) =>
-          prev.map((i) => (i.id === next.id ? { ...i, status: "uploading" } : i))
-        );
-        await uploadFile(next);
-      }
-    };
-
-    await Promise.all([worker(), worker()]);
-
-    setIsProcessing(false);
-    if (onUploadSuccess) {
-      onUploadSuccess();
-    }
-  };
-
-  const completedCount = items.filter((i) => i.status === "completed").length;
-  const isAllFinished = items.length > 0 && completedCount === items.length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-100">
@@ -238,69 +140,48 @@ export function UploadModal({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-[11px] text-neutral-400 px-0.5">
                 <span>{items.length} file dipilih</span>
-                <span>
-                  {completedCount}/{items.length} selesai
-                </span>
               </div>
               <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                 {items.map((item) => {
                   const isVideo = item.file.type.startsWith("video/");
+                  const formatSize = (bytes: number) => {
+                    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+                    if (bytes < 1024 * 1024 * 1024)
+                      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+                    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+                  };
+
                   return (
                     <div
                       key={item.id}
-                      className="p-2 rounded-lg bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 flex items-center gap-2.5"
+                      className="p-2.5 rounded-lg bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-2.5"
                     >
-                      <div className="text-neutral-400 shrink-0">
-                        {isVideo ? (
-                          <FileVideo className="h-4 w-4" />
-                        ) : (
-                          <FileImage className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1 mb-1">
-                          <p className="text-xs truncate text-neutral-800 dark:text-neutral-200">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="text-neutral-400 shrink-0">
+                          {isVideo ? (
+                            <FileVideo className="h-4 w-4 text-sky-500" />
+                          ) : (
+                            <FileImage className="h-4 w-4 text-[#d96b82]" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs truncate font-medium text-neutral-800 dark:text-neutral-200">
                             {item.file.name}
                           </p>
-                          <span className="text-[10px] text-neutral-400 shrink-0">
-                            {(item.file.size / (1024 * 1024)).toFixed(1)} MB
+                          <span className="text-[10px] text-neutral-400 block">
+                            {formatSize(item.file.size)}
                           </span>
                         </div>
-                        <div className="w-full bg-neutral-200 dark:bg-neutral-800 h-1 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full transition-all duration-200 ${
-                              item.status === "failed"
-                                ? "bg-rose-500"
-                                : item.status === "completed"
-                                ? "bg-emerald-500"
-                                : "bg-blue-600"
-                            }`}
-                            style={{ width: `${item.progress}%` }}
-                          />
-                        </div>
-                        {item.errorMessage && (
-                          <p className="text-[10px] text-rose-500 mt-0.5">
-                            {item.errorMessage}
-                          </p>
-                        )}
                       </div>
 
-                      <div className="shrink-0">
-                        {item.status === "completed" ? (
-                          <Check className="h-4 w-4 text-emerald-500 stroke-[3]" />
-                        ) : item.status === "uploading" ? (
-                          <Loader2 className="h-3.5 w-3.5 text-neutral-400 animate-spin" />
-                        ) : item.status === "failed" ? (
-                          <AlertCircle className="h-4 w-4 text-rose-500" />
-                        ) : (
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="p-1 text-neutral-400 hover:text-neutral-600"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.id)}
+                        className="p-1 text-neutral-400 hover:text-neutral-600 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                        title="Hapus"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   );
                 })}
@@ -312,39 +193,24 @@ export function UploadModal({
         {/* Footer */}
         <div className="px-4 py-2.5 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-950/50">
           <button
+            type="button"
             onClick={() => {
               setItems([]);
               onClose();
             }}
             className="px-3 py-1.5 rounded-lg text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
-            {isAllFinished ? "Tutup" : "Batal"}
+            Batal
           </button>
 
-          {items.length > 0 && !isAllFinished && (
+          {items.length > 0 && (
             <button
+              type="button"
               onClick={startUploads}
-              disabled={isProcessing}
-              className="px-3.5 py-1.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-black font-medium text-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-1.5 rounded-lg bg-neutral-900 dark:bg-white rose:bg-[#d96b82] text-white dark:text-black rose:text-white font-medium text-xs shadow-xs hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer"
             >
-              {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
-              <span>
-                {isProcessing
-                  ? "Mengunggah..."
-                  : `Unggah (${items.filter((i) => i.status === "waiting").length})`}
-              </span>
-            </button>
-          )}
-
-          {isAllFinished && (
-            <button
-              onClick={() => {
-                setItems([]);
-                onClose();
-              }}
-              className="px-3.5 py-1.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-black font-medium text-xs cursor-pointer"
-            >
-              Selesai
+              <Upload className="h-3 w-3" />
+              <span>Unggah di Latar Belakang ({items.length})</span>
             </button>
           )}
         </div>

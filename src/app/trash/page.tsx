@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
+import { useGridZoom } from "@/hooks/useGridZoom";
+import { GridZoomControls } from "@/components/GridZoomControls";
 import {
   Trash2,
   RotateCcw,
@@ -24,6 +26,15 @@ interface TrashedItem {
 }
 
 export default function TrashPage() {
+  const {
+    zoomLevel,
+    zoomIn,
+    zoomOut,
+    gridClass,
+    canZoomIn,
+    canZoomOut,
+  } = useGridZoom();
+
   const [trashItems, setTrashItems] = useState<TrashedItem[]>([]);
   const [retentionDays, setRetentionDays] = useState(30);
   const [loading, setLoading] = useState(true);
@@ -147,9 +158,18 @@ export default function TrashPage() {
             </span>
           </div>
 
-          {/* Action buttons */}
-          {trashItems.length > 0 && (
-            <div className="flex items-center gap-1.5">
+          {/* Action buttons & Zoom */}
+          <div className="flex items-center gap-2">
+            <GridZoomControls
+              zoomLevel={zoomLevel}
+              canZoomIn={canZoomIn}
+              canZoomOut={canZoomOut}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+            />
+
+            {trashItems.length > 0 && (
+              <div className="flex items-center gap-1.5">
               <button
                 onClick={handleSelectAll}
                 className="px-2.5 py-1 rounded-md text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
@@ -187,6 +207,7 @@ export default function TrashPage() {
               )}
             </div>
           )}
+          </div>
         </header>
 
         {/* Quiet Informational Notice */}
@@ -206,7 +227,7 @@ export default function TrashPage() {
               <p className="text-xs text-neutral-400">Trash kosong</p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 sm:gap-1.5">
+            <div className={`grid ${gridClass} transition-all duration-200`}>
               {trashItems.map((item) => {
                 const isSelected = selectedIds.has(item.id);
 

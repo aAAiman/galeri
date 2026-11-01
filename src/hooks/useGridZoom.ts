@@ -73,21 +73,58 @@ export function useGridZoom() {
       }
     };
 
+    let touchStartDist = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchStartDist = Math.hypot(dx, dy);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && touchStartDist > 0) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        const diff = dist - touchStartDist;
+        if (diff > 50) {
+          zoomIn();
+          touchStartDist = dist;
+        } else if (diff < -50) {
+          zoomOut();
+          touchStartDist = dist;
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStartDist = 0;
+    };
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
   }, [zoomIn, zoomOut]);
 
-  // Apple Photos responsive grid column classes
+  // Ultra-responsive Google & Apple Photos style grid classes
+  // User requested: previous compact is now the new "large", and smaller levels are even denser
   const gridClass =
-    zoomLevel === "compact"
-      ? "grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1"
-      : zoomLevel === "large"
-      ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3"
-      : "grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 sm:gap-1.5";
+    zoomLevel === "large"
+      ? "grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5"
+      : zoomLevel === "normal"
+      ? "grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-1"
+      : "grid-cols-6 sm:grid-cols-9 md:grid-cols-12 lg:grid-cols-15 gap-0.5 sm:gap-1";
 
   return {
     zoomLevel,

@@ -4,6 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeWatermark } from "@/components/ThemeWatermark";
+import { UploadProvider } from "@/components/UploadContext";
+import { BackgroundUploadWidget } from "@/components/BackgroundUploadWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,10 +56,13 @@ export default function RootLayout({
           }}
         />
         <ThemeProvider>
-          <ThemeWatermark />
-          <div className="relative z-10 flex-1 flex flex-col">
-            {children}
-          </div>
+          <UploadProvider>
+            <ThemeWatermark />
+            <div className="relative z-10 flex-1 flex flex-col">
+              {children}
+            </div>
+            <BackgroundUploadWidget />
+          </UploadProvider>
         </ThemeProvider>
       </body>
     </html>

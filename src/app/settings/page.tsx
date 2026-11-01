@@ -155,20 +155,22 @@ export default function SettingsPage() {
       <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
         {/* Header */}
         <header className="sticky top-0 z-30 bg-white/80 rose:bg-[#fff9f9]/85 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 py-2.5">
-          <h1 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Pengaturan
-          </h1>
+          <div className="max-w-2xl mx-auto w-full">
+            <h1 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Pengaturan
+            </h1>
+          </div>
         </header>
 
-        <div className="p-4 sm:p-6 max-w-2xl space-y-8">
+        <div className="p-4 sm:p-6 max-w-2xl mx-auto w-full space-y-8">
           {/* Section: Storage Quota */}
           <section className="space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-500 rose:text-[#a38088]">
               <HardDrive className="h-3.5 w-3.5" />
               <span>Penyimpanan (Batas 50 GB)</span>
             </div>
 
-            <div className="border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 space-y-3">
+            <div className="border border-neutral-200 dark:border-neutral-800 rose:border-[#f4d8de] bg-white/90 rose:bg-white/90 backdrop-blur-md rounded-xl p-4 space-y-3 shadow-xs">
               {loadingStorage ? (
                 <div className="py-4 flex justify-center text-neutral-400">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -190,7 +192,7 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Clean progress meter */}
-                  <div className="w-full bg-neutral-100 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-neutral-100 dark:bg-neutral-800 rose:bg-[#fcecef] rounded-full h-2 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-300 ${storage.percentageUsed >= 90
                           ? "bg-rose-500"
@@ -212,12 +214,12 @@ export default function SettingsPage() {
 
           {/* Section: Password */}
           <section className="space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-500 rose:text-[#a38088]">
               <KeyRound className="h-3.5 w-3.5" />
               <span>Kata Sandi Bersama</span>
             </div>
 
-            <div className="border border-neutral-200 dark:border-neutral-800 rounded-xl p-4">
+            <div className="border border-neutral-200 dark:border-neutral-800 rose:border-[#f4d8de] bg-white/90 rose:bg-white/90 backdrop-blur-md rounded-xl p-4 shadow-xs">
               <form onSubmit={handleChangePassword} className="space-y-3 max-w-sm">
                 <div>
                   <label className="block text-xs text-neutral-500 mb-1">
@@ -228,7 +230,7 @@ export default function SettingsPage() {
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-xs focus:outline-none focus:ring-1 focus:ring-neutral-500"
+                    className="w-full px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 rose:border-[#f4d8de] bg-white dark:bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-neutral-500 rose:focus:ring-[#d96b82]"
                   />
                 </div>
 
@@ -241,7 +243,7 @@ export default function SettingsPage() {
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-xs focus:outline-none focus:ring-1 focus:ring-neutral-500"
+                    className="w-full px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 rose:border-[#f4d8de] bg-white dark:bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-neutral-500 rose:focus:ring-[#d96b82]"
                   />
                 </div>
 
@@ -254,7 +256,7 @@ export default function SettingsPage() {
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-xs focus:outline-none focus:ring-1 focus:ring-neutral-500"
+                    className="w-full px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 rose:border-[#f4d8de] bg-white dark:bg-neutral-900 text-xs focus:outline-none focus:ring-1 focus:ring-neutral-500 rose:focus:ring-[#d96b82]"
                   />
                 </div>
 
@@ -269,7 +271,7 @@ export default function SettingsPage() {
                 <button
                   type="submit"
                   disabled={pwdLoading || !currentPassword || !newPassword}
-                  className="px-3.5 py-1.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-black text-xs font-medium cursor-pointer disabled:opacity-50 transition-colors"
+                  className="px-3.5 py-1.5 rounded-lg bg-neutral-900 dark:bg-white rose:bg-[#d96b82] hover:rose:bg-[#c7556e] text-white dark:text-black text-xs font-medium cursor-pointer disabled:opacity-50 transition-colors shadow-xs"
                 >
                   {pwdLoading ? "Memperbarui..." : "Perbarui Password"}
                 </button>
@@ -284,7 +286,7 @@ export default function SettingsPage() {
               <span>Tema Tampilan</span>
             </div>
 
-            <div className="border border-neutral-200 rose:border-[#f4d8de] bg-white rose:bg-white/80 rounded-xl p-4 space-y-3">
+            <div className="border border-neutral-200 rose:border-[#f4d8de] bg-white/90 rose:bg-white/90 backdrop-blur-md rounded-xl p-4 space-y-3 shadow-xs">
               <div className="grid grid-cols-2 gap-3">
                 {/* Rose Romance Theme Card */}
                 <button
@@ -461,31 +463,32 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border border-neutral-200 dark:border-neutral-800 rounded-xl p-3.5">
-              <div className="flex items-center gap-2.5">
-                <Trash2 className="h-4 w-4 text-neutral-500" />
+            <Link
+              href="/trash"
+              className="w-full flex items-center justify-between border border-neutral-200 dark:border-neutral-800 rose:border-[#f4d8de] hover:border-neutral-300 dark:hover:border-neutral-700 rounded-xl p-3.5 bg-white/90 dark:bg-neutral-900 rose:bg-white/90 backdrop-blur-md hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all cursor-pointer text-left group shadow-xs"
+            >
+              <div className="flex items-center gap-2.5 text-neutral-800 dark:text-neutral-200">
+                <Trash2 className="h-4 w-4 text-neutral-500 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-medium">Buka Trash</span>
               </div>
-              <Link
-                href="/trash"
-                className="px-2.5 py-1 rounded text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              >
+              <span className="px-2.5 py-1 rounded text-xs text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 group-hover:bg-neutral-200 dark:group-hover:bg-neutral-700 transition-colors font-medium">
                 Lihat
-              </Link>
-            </div>
+              </span>
+            </Link>
 
-            <div className="flex items-center justify-between border border-neutral-200 dark:border-neutral-800 rounded-xl p-3.5">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full flex items-center justify-between border border-rose-200 dark:border-neutral-800 rounded-xl p-3.5 bg-white dark:bg-neutral-900 hover:bg-rose-50/70 dark:hover:bg-rose-950/20 hover:border-rose-300 dark:hover:border-rose-900 text-rose-500 transition-all cursor-pointer text-left group shadow-xs"
+            >
               <div className="flex items-center gap-2.5 text-rose-500">
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4 w-4 transition-transform group-hover:scale-110" />
                 <span className="text-xs font-medium">Keluar dari Galeri</span>
               </div>
-              <button
-                onClick={handleLogout}
-                className="px-2.5 py-1 rounded text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 cursor-pointer"
-              >
+              <span className="px-2.5 py-1 rounded text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/30 group-hover:bg-rose-100 dark:group-hover:bg-rose-900/50 transition-colors font-medium">
                 Keluar
-              </button>
-            </div>
+              </span>
+            </button>
           </section>
         </div>
       </main>

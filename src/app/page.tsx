@@ -10,10 +10,13 @@ import { AlbumModal } from "@/components/AlbumModal";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { PhotoThumbnail } from "@/components/PhotoThumbnail";
 import { useTheme } from "@/components/ThemeProvider";
+import { useGridZoom } from "@/hooks/useGridZoom";
+import { GridZoomControls } from "@/components/GridZoomControls";
 import {
   Loader2,
   Upload,
   Folder,
+  CheckSquare,
 } from "lucide-react";
 
 interface HomeAlbum {
@@ -26,6 +29,14 @@ interface HomeAlbum {
 
 export default function HomeGalleryPage() {
   const { theme } = useTheme();
+  const {
+    zoomLevel,
+    zoomIn,
+    zoomOut,
+    gridClass,
+    canZoomIn,
+    canZoomOut,
+  } = useGridZoom();
 
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
   const [albums, setAlbums] = useState<HomeAlbum[]>([]);
@@ -86,6 +97,19 @@ export default function HomeGalleryPage() {
       .then((r) => r.json())
       .then((d) => setAlbums(d.albums || []))
       .catch(console.error);
+
+    const handleRefresh = () => {
+      fetchMedia(1, false);
+      fetch("/api/albums")
+        .then((r) => r.json())
+        .then((d) => setAlbums(d.albums || []))
+        .catch(console.error);
+    };
+
+    window.addEventListener("galerikita:refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("galerikita:refresh", handleRefresh);
+    };
   }, [fetchMedia]);
 
   const loadMore = () => {
@@ -235,6 +259,15 @@ export default function HomeGalleryPage() {
   };
 
   const isSelectionActive = selectedIds.size > 0;
+  const isAllSelected = mediaList.length > 0 && selectedIds.size === mediaList.length;
+
+  const handleToggleSelectAll = useCallback(() => {
+    if (selectedIds.size === mediaList.length && mediaList.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(mediaList.map((m) => m.id)));
+    }
+  }, [mediaList, selectedIds.size]);
 
   return (
     <div className="min-h-screen flex bg-transparent text-neutral-900 rose:text-[#3a2228] transition-colors relative">
@@ -244,25 +277,64 @@ export default function HomeGalleryPage() {
       <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
         {/* Understated Minimal Header with Frosted Glass */}
         <header className="sticky top-0 z-30 bg-white/80 rose:bg-[#fff9f9]/85 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 py-2.5 flex items-center justify-between gap-3 select-none">
-          {/* Filter Pills */}
-          <div className="flex items-center bg-neutral-100 rose:bg-[#fcecef] rounded-lg p-0.5 text-xs border border-transparent rose:border-[#f4d8de]">
-            {(["all", "photo", "video"] as const).map((tab) => (
+          {/* Filter Pills & Grid Zoom Controls */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-neutral-100 rose:bg-[#fcecef] rounded-lg p-0.5 text-xs border border-transparent rose:border-[#f4d8de]">
+              {(["all", "photo", "video"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setFilter(tab)}
+                  className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
+                    filter === tab
+                      ? theme === "rose"
+                        ? "bg-[#d96b82] text-white font-medium shadow-xs"
+                        : "bg-white text-neutral-900 font-medium shadow-xs"
+                      : theme === "rose"
+                      ? "text-[#7a5c63] hover:text-[#d96b82]"
+                      : "text-neutral-500 hover:text-neutral-800"
+                  }`}
+                >
+                  {tab === "all" ? "Semua" : tab === "photo" ? "Foto" : "Video"}
+                </button>
+              ))}
+            </div>
+
+            <GridZoomControls
+              zoomLevel={zoomLevel}
+              canZoomIn={canZoomIn}
+              canZoomOut={canZoomOut}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+            />
+
+            {mediaList.length > 0 && (
               <button
-                key={tab}
-                onClick={() => setFilter(tab)}
-                className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                  filter === tab
-                    ? theme === "rose"
-                      ? "bg-[#d96b82] text-white font-medium shadow-xs"
-                      : "bg-white text-neutral-900 font-medium shadow-xs"
-                    : theme === "rose"
-                    ? "text-[#7a5c63] hover:text-[#d96b82]"
-                    : "text-neutral-500 hover:text-neutral-800"
+                type="button"
+                onClick={handleToggleSelectAll}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer select-none ${
+                  selectedIds.size > 0
+                    ? "bg-blue-600 text-white rose:bg-[#d96b82] rose:text-white shadow-xs"
+                    : "bg-neutral-100 dark:bg-neutral-800 rose:bg-[#fcecef] text-neutral-600 dark:text-neutral-300 rose:text-[#7a5c63] hover:text-neutral-900 rose:hover:text-[#d96b82] border border-transparent rose:border-[#f4d8de]"
                 }`}
+                title={
+                  isAllSelected
+                    ? "Batalkan pilihan semua foto"
+                    : "Pilih semua foto"
+                }
               >
-                {tab === "all" ? "Semua" : tab === "photo" ? "Foto" : "Video"}
+                <CheckSquare className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">
+                  {isAllSelected
+                    ? "Batal Semua"
+                    : selectedIds.size > 0
+                    ? `${selectedIds.size} Dipilih`
+                    : "Pilih Semua"}
+                </span>
+                <span className="sm:hidden">
+                  {selectedIds.size > 0 ? selectedIds.size : "Pilih"}
+                </span>
               </button>
-            ))}
+            )}
           </div>
 
           {/* Right Side: Upload (mobile) & Couple Profile Avatar */}
@@ -407,8 +479,8 @@ export default function HomeGalleryPage() {
                   </span>
                 </div>
 
-                {/* Automatic responsive photo grid */}
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1.5 transition-all">
+                {/* Zoomable responsive photo grid */}
+                <div className={`grid ${gridClass} transition-all duration-200`}>
                   {items.map((item) => {
                     const isSelected = selectedIds.has(item.id);
                     const globalIndex = mediaList.findIndex(
@@ -456,6 +528,9 @@ export default function HomeGalleryPage() {
       {/* Floating Selection Toolbar */}
       <ActionToolbar
         selectedCount={selectedIds.size}
+        totalCount={mediaList.length}
+        isAllSelected={isAllSelected}
+        onToggleSelectAll={handleToggleSelectAll}
         onClearSelection={() => setSelectedIds(new Set())}
         onMoveToAlbum={() => setAlbumModalMode("select_move")}
         onAddToAlbum={() => setAlbumModalMode("select_add")}

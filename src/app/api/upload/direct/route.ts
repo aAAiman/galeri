@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import fsPromises from "fs/promises";
+import fs from "fs";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import path from "path";
 import mime from "mime-types";
 import sharp from "sharp";
@@ -17,6 +19,9 @@ import {
 } from "@/lib/storage/quota";
 import { enqueueThumbnailJob } from "@/lib/worker/media-worker";
 import { ResultSetHeader } from "mysql2";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 3600; // Allow up to 1 hour for large 1.5GB+ videos on home network
 
 const ALLOWED_EXTENSIONS = new Set([
   ".jpg",
@@ -78,8 +83,10 @@ export async function POST(request: NextRequest) {
     const storageKey = generateStorageKey(originalFilename);
     const targetPath = getOriginalPath(storageKey);
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await fsPromises.writeFile(targetPath, buffer);
+    // Stream directly to disk in ~64KB chunks to prevent memory spikes & OOM crashes on 1.5GB+ files
+    const nodeReadable = Readable.fromWeb(file.stream() as any);
+    const writeStream = fs.createWriteStream(targetPath);
+    await pipeline(nodeReadable, writeStream);
 
     // Commit quota reservation
     await commitUploadBytes(fileSize, fileSize);

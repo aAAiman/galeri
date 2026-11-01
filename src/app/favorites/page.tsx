@@ -10,10 +10,20 @@ import { AlbumModal } from "@/components/AlbumModal";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { PhotoThumbnail } from "@/components/PhotoThumbnail";
 import { useTheme } from "@/components/ThemeProvider";
-import { Heart, Play, Check, Loader2 } from "lucide-react";
+import { useGridZoom } from "@/hooks/useGridZoom";
+import { GridZoomControls } from "@/components/GridZoomControls";
+import { Heart, Play, Check, CheckSquare, Loader2 } from "lucide-react";
 
 export default function FavoritesPage() {
   const { theme } = useTheme();
+  const {
+    zoomLevel,
+    zoomIn,
+    zoomOut,
+    gridClass,
+    canZoomIn,
+    canZoomOut,
+  } = useGridZoom();
 
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +50,11 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     fetchFavorites();
+    const handleRefresh = () => fetchFavorites();
+    window.addEventListener("galerikita:refresh", handleRefresh);
+    return () => {
+      window.removeEventListener("galerikita:refresh", handleRefresh);
+    };
   }, []);
 
   const toggleSelect = (id: number, e: React.MouseEvent) => {
@@ -78,6 +93,15 @@ export default function FavoritesPage() {
   };
 
   const isSelectionActive = selectedIds.size > 0;
+  const isAllSelected = mediaList.length > 0 && selectedIds.size === mediaList.length;
+
+  const handleToggleSelectAll = () => {
+    if (selectedIds.size === mediaList.length && mediaList.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(mediaList.map((m) => m.id)));
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-transparent text-neutral-900 rose:text-[#3a2228] transition-colors relative">
@@ -97,6 +121,43 @@ export default function FavoritesPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <GridZoomControls
+              zoomLevel={zoomLevel}
+              canZoomIn={canZoomIn}
+              canZoomOut={canZoomOut}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+            />
+
+            {mediaList.length > 0 && (
+              <button
+                type="button"
+                onClick={handleToggleSelectAll}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer select-none ${
+                  selectedIds.size > 0
+                    ? "bg-blue-600 text-white rose:bg-[#d96b82] rose:text-white shadow-xs"
+                    : "bg-neutral-100 dark:bg-neutral-800 rose:bg-[#fcecef] text-neutral-600 dark:text-neutral-300 rose:text-[#7a5c63] hover:text-neutral-900 rose:hover:text-[#d96b82] border border-transparent rose:border-[#f4d8de]"
+                }`}
+                title={
+                  isAllSelected
+                    ? "Batalkan pilihan semua foto"
+                    : "Pilih semua foto"
+                }
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">
+                  {isAllSelected
+                    ? "Batal Semua"
+                    : selectedIds.size > 0
+                    ? `${selectedIds.size} Dipilih`
+                    : "Pilih Semua"}
+                </span>
+                <span className="sm:hidden">
+                  {selectedIds.size > 0 ? selectedIds.size : "Pilih"}
+                </span>
+              </button>
+            )}
+
             {/* Couple Avatar in Header */}
             <Link
               href="/settings"
@@ -130,7 +191,7 @@ export default function FavoritesPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1.5 transition-all">
+            <div className={`grid ${gridClass} transition-all duration-200`}>
               {mediaList.map((item, index) => {
                 const isSelected = selectedIds.has(item.id);
 
@@ -160,6 +221,9 @@ export default function FavoritesPage() {
 
       <ActionToolbar
         selectedCount={selectedIds.size}
+        totalCount={mediaList.length}
+        isAllSelected={isAllSelected}
+        onToggleSelectAll={handleToggleSelectAll}
         onClearSelection={() => setSelectedIds(new Set())}
         onMoveToAlbum={() => setAlbumModalMode("select_move")}
         onAddToAlbum={() => setAlbumModalMode("select_add")}
