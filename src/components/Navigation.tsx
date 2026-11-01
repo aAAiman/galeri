@@ -77,11 +77,10 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
             <div className="flex items-center gap-2.5">
               <div className="relative shrink-0">
                 <div
-                  className={`h-9 w-9 rounded-full overflow-hidden border-2 transition-all shadow-xs ${
-                    theme === "rose"
+                  className={`h-9 w-9 rounded-full overflow-hidden border-2 transition-all shadow-xs ${theme === "rose"
                       ? "border-[#d96b82] ring-2 ring-[#fcdde3]"
                       : "border-neutral-300 dark:border-neutral-700"
-                  }`}
+                    }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -96,11 +95,10 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
               </div>
               <div className="leading-tight min-w-0">
                 <span
-                  className={`font-bold text-sm tracking-tight truncate block ${
-                    theme === "rose"
+                  className={`font-bold text-sm tracking-tight truncate block ${theme === "rose"
                       ? "text-[#3a2228]"
                       : "text-neutral-900 dark:text-neutral-100"
-                  }`}
+                    }`}
                 >
                   GaleriKita
                 </span>
@@ -116,8 +114,8 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
             <button
               onClick={onOpenUpload}
               className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium text-xs transition-colors cursor-pointer ${theme === "rose"
-                  ? "bg-[#d96b82] hover:bg-[#c7556e] text-white shadow-sm"
-                  : "bg-neutral-900 dark:bg-neutral-100 hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-900"
+                ? "bg-[#d96b82] hover:bg-[#c7556e] text-white shadow-sm"
+                : "bg-neutral-900 dark:bg-neutral-100 hover:bg-neutral-800 dark:hover:bg-neutral-200 text-white dark:text-neutral-900"
                 }`}
             >
               <Upload className="h-3.5 w-3.5 stroke-[2]" />
@@ -139,22 +137,22 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${isActive
-                      ? theme === "rose"
-                        ? "bg-[#fcecef] text-[#d96b82] font-semibold"
-                        : "bg-neutral-100 dark:bg-neutral-800/80 text-neutral-900 dark:text-neutral-100 font-semibold"
-                      : theme === "rose"
-                        ? "text-[#7a5c63] hover:bg-[#faebee] hover:text-[#d96b82]"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-neutral-200"
+                    ? theme === "rose"
+                      ? "bg-[#fcecef] text-[#d96b82] font-semibold"
+                      : "bg-neutral-100 dark:bg-neutral-800/80 text-neutral-900 dark:text-neutral-100 font-semibold"
+                    : theme === "rose"
+                      ? "text-[#7a5c63] hover:bg-[#faebee] hover:text-[#d96b82]"
+                      : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-neutral-200"
                     }`}
                 >
                   <Icon
                     className={`h-4 w-4 shrink-0 ${isActive
-                        ? theme === "rose"
-                          ? "text-[#d96b82]"
-                          : "text-neutral-900 dark:text-neutral-100"
-                        : theme === "rose"
-                          ? "text-[#a38088]"
-                          : "text-neutral-500"
+                      ? theme === "rose"
+                        ? "text-[#d96b82]"
+                        : "text-neutral-900 dark:text-neutral-100"
+                      : theme === "rose"
+                        ? "text-[#a38088]"
+                        : "text-neutral-500"
                       }`}
                   />
                   <span>{item.label}</span>
@@ -189,12 +187,12 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
                       key={album.id}
                       href={`/albums/${album.id}`}
                       className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-all ${isActive
-                          ? theme === "rose"
-                            ? "bg-[#fcecef] text-[#d96b82] font-semibold"
-                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-semibold"
-                          : theme === "rose"
-                            ? "text-[#6d4d54] hover:bg-[#fff0f3]"
-                            : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                        ? theme === "rose"
+                          ? "bg-[#fcecef] text-[#d96b82] font-semibold"
+                          : "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 font-semibold"
+                        : theme === "rose"
+                          ? "text-[#6d4d54] hover:bg-[#fff0f3]"
+                          : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900"
                         }`}
                     >
                       <div className="h-7 w-7 rounded-md overflow-hidden shrink-0 bg-neutral-100 dark:bg-neutral-800 rose:bg-[#fcecef] border border-neutral-200 dark:border-neutral-800 rose:border-[#f4d8de] relative">
@@ -257,8 +255,8 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
           <button
             onClick={cycleTheme}
             className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${theme === "rose"
-                ? "text-[#a38088] hover:text-[#d96b82] hover:bg-[#faebee]"
-                : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
+              ? "text-[#a38088] hover:text-[#d96b82] hover:bg-[#faebee]"
+              : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
               }`}
             title="Ganti Tema (Klik untuk beralih)"
           >
@@ -276,8 +274,24 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
           </button>
 
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
+            className="
+              w-full
+              flex items-center gap-2.5
+              px-3 py-3
+              text-left text-xs font-medium
+              rounded-lg
+              border border-transparent
+              text-neutral-500
+              hover:text-rose-600
+              dark:hover:text-rose-400
+              hover:bg-rose-50
+              dark:hover:bg-neutral-900
+              hover:border-rose-200
+              transition-all
+              cursor-pointer
+            "
           >
             <LogOut className="h-3.5 w-3.5" />
             <span>Keluar</span>
@@ -299,12 +313,12 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-md text-[11px] font-medium transition-colors ${isActive
-                  ? theme === "rose"
-                    ? "text-[#d96b82] font-semibold"
-                    : "text-neutral-900 dark:text-neutral-100 font-semibold"
-                  : theme === "rose"
-                    ? "text-[#a38088] hover:text-[#d96b82]"
-                    : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+                ? theme === "rose"
+                  ? "text-[#d96b82] font-semibold"
+                  : "text-neutral-900 dark:text-neutral-100 font-semibold"
+                : theme === "rose"
+                  ? "text-[#a38088] hover:text-[#d96b82]"
+                  : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
                 }`}
             >
               <Icon className="h-4 w-4" />
