@@ -48,14 +48,26 @@ export function PhotoThumbnail({
       }`}
     >
       {/* Thumbnail */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`/api/media/${item.id}/thumbnail`}
-        alt={item.original_filename}
-        loading="lazy"
-        draggable={false}
-        className="w-full h-full object-cover transition-opacity duration-150 pointer-events-none"
-      />
+      {item.media_type === "video" &&
+      (!item.thumbnail_storage_key ||
+        item.thumbnail_storage_key.startsWith("poster_")) ? (
+        <video
+          src={`/api/media/${item.id}/file#t=0.5`}
+          preload="metadata"
+          muted
+          playsInline
+          className="w-full h-full object-cover transition-opacity duration-150 pointer-events-none"
+        />
+      ) : (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={`/api/media/${item.id}/thumbnail`}
+          alt={item.original_filename}
+          loading="lazy"
+          draggable={false}
+          className="w-full h-full object-cover transition-opacity duration-150 pointer-events-none"
+        />
+      )}
 
       {/* Subtle selection hover overlay */}
       <div

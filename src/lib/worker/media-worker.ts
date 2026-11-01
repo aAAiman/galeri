@@ -1,7 +1,11 @@
 import path from "path";
 import fsPromises from "fs/promises";
 import sharp from "sharp";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import { pool } from "../db/connection";
+
+const execFileAsync = promisify(execFile);
 import {
   getOriginalPath,
   getVariantPath,
@@ -82,38 +86,98 @@ async function processThumbnailJob(job: JobRow): Promise<void> {
       [job.media_id, previewFilename, previewStat.size, width, height]
     );
   } else if (job.media_type === "video") {
-    // For video, generate an SVG / placeholder poster if ffmpeg is not available
-    const posterFilename = `poster_${path.parse(job.storage_key).name}.webp`;
-    const posterPath = getVariantPath(posterFilename);
+    const thumbFilename = `thumb_${path.parse(job.storage_key).name}.webp`;
+    const thumbPath = getVariantPath(thumbFilename);
 
-    // Create a sleek dark gradient video poster with play badge
-    const svgPoster = `
-      <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grad)" />
-        <circle cx="200" cy="150" r="32" fill="#38bdf8" fill-opacity="0.9" />
-        <polygon points="192,136 216,150 192,164" fill="#ffffff" />
-      </svg>
-    `;
+    let extractedWithFfmpeg = false;
 
-    await sharp(Buffer.from(svgPoster))
-      .resize(400, 300)
-      .webp({ quality: 80 })
-      .toFile(posterPath);
+    try {
+      // 1. Extract 1 video frame at 0.5s via ffmpeg
+      await execFileAsync("ffmpeg", [
+        "-y",
+        "-ss",
+        "00:00:00.500",
+        "-i",
+        originalPath,
+        "-vframes",
+        "1",
+        "-vf",
+        "scale=320:320:force_original_aspect_ratio=increase,crop=320:320",
+        "-q:v",
+        "80",
+        thumbPath,
+      ]);
 
-    const posterStat = await fsPromises.stat(posterPath);
+      const stat = await fsPromises.stat(thumbPath);
+      if (stat.size > 0) {
+        await pool.query(
+          `INSERT INTO media_variants (media_id, variant_type, storage_key, mime_type, file_size, width, height)
+           VALUES (?, 'thumbnail', ?, 'image/webp', ?, 320, 320)
+           ON DUPLICATE KEY UPDATE file_size = VALUES(file_size)`,
+          [job.media_id, thumbFilename, stat.size]
+        );
+        extractedWithFfmpeg = true;
+      }
+    } catch {
+      // ffmpeg not installed or execution failed, continue to fallback
+    }
 
-    await pool.query(
-      `INSERT INTO media_variants (media_id, variant_type, storage_key, mime_type, file_size, width, height)
-       VALUES (?, 'poster', ?, 'image/webp', ?, 400, 300)
-       ON DUPLICATE KEY UPDATE file_size = VALUES(file_size)`,
-      [job.media_id, posterFilename, posterStat.size]
-    );
+    // Try extracting duration with ffprobe
+    try {
+      const { stdout } = await execFileAsync("ffprobe", [
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        originalPath,
+      ]);
+      const duration = parseFloat(stdout.trim());
+      if (!isNaN(duration) && duration > 0) {
+        await pool.query(
+          "UPDATE media SET duration_seconds = ? WHERE id = ?",
+          [Math.round(duration), job.media_id]
+        );
+      }
+    } catch {
+      // ffprobe not installed or failed
+    }
+
+    if (!extractedWithFfmpeg) {
+      // Fallback placeholder if ffmpeg is not available
+      const posterFilename = `poster_${path.parse(job.storage_key).name}.webp`;
+      const posterPath = getVariantPath(posterFilename);
+
+      // Create a sleek dark gradient video poster with play badge
+      const svgPoster = `
+        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grad)" />
+          <circle cx="200" cy="150" r="32" fill="#38bdf8" fill-opacity="0.9" />
+          <polygon points="192,136 216,150 192,164" fill="#ffffff" />
+        </svg>
+      `;
+
+      await sharp(Buffer.from(svgPoster))
+        .resize(400, 300)
+        .webp({ quality: 80 })
+        .toFile(posterPath);
+
+      const posterStat = await fsPromises.stat(posterPath);
+
+      await pool.query(
+        `INSERT INTO media_variants (media_id, variant_type, storage_key, mime_type, file_size, width, height)
+         VALUES (?, 'poster', ?, 'image/webp', ?, 400, 300)
+         ON DUPLICATE KEY UPDATE file_size = VALUES(file_size)`,
+        [job.media_id, posterFilename, posterStat.size]
+      );
+    }
   }
 }
 
