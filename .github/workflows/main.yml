@@ -15,5 +15,5 @@ jobs:
           set -e
           cd /var/www/galeri
           git pull --ff-only origin main
-          docker compose up -d --build
+          docker-compose up -d --build
           docker image prune -f
