@@ -8,6 +8,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
+import * as tus from "tus-js-client";
 
 export interface UploadTask {
   id: string;
@@ -17,7 +18,7 @@ export interface UploadTask {
   loaded: number;
   progress: number;
   speed: string;
-  status: "waiting" | "uploading" | "completed" | "failed";
+  status: "waiting" | "uploading" | "paused" | "completed" | "failed";
   errorMessage?: string;
   targetAlbumId?: number | null;
   targetAlbumName?: string | null;
@@ -36,6 +37,9 @@ interface UploadContextType {
     targetAlbumId?: number | null,
     targetAlbumName?: string | null
   ) => void;
+  pauseTask: (id: string) => void;
+  resumeTask: (id: string) => void;
+  retryTask: (id: string) => void;
   cancelTask: (id: string) => void;
   clearFinished: () => void;
   closeWidget: () => void;
@@ -64,8 +68,8 @@ export function UploadProvider({ children }: { children: ReactNode }) {
     name?: string | null;
   }>({});
 
-  // Active XHR requests stored by task id
-  const xhrMapRef = useRef<Map<string, XMLHttpRequest>>(new Map());
+  // Active TUS upload instances stored by task id
+  const tusMapRef = useRef<Map<string, tus.Upload>>(new Map());
 
   const formatBytes = (bytes: number) => {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
@@ -76,55 +80,66 @@ export function UploadProvider({ children }: { children: ReactNode }) {
 
   const uploadSingleTask = async (task: UploadTask): Promise<void> => {
     return new Promise<void>((resolve) => {
-      const formData = new FormData();
-      formData.append("file", task.file);
-      if (task.targetAlbumId) {
-        formData.append("targetAlbumId", task.targetAlbumId.toString());
-      }
-
-      const xhr = new XMLHttpRequest();
-      xhrMapRef.current.set(task.id, xhr);
-      xhr.open("POST", "/api/upload/direct");
-
-      let lastLoaded = 0;
+      let lastLoaded = task.loaded || 0;
       let lastTime = Date.now();
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
+      const upload = new tus.Upload(task.file, {
+        endpoint: "/api/upload/tus",
+        chunkSize: 8 * 1024 * 1024, // 8 MiB chunks
+        retryDelays: [0, 1000, 3000, 5000, 10000],
+        metadata: {
+          filename: task.file.name,
+          filetype: task.file.type || "application/octet-stream",
+          targetAlbumId: task.targetAlbumId ? task.targetAlbumId.toString() : "",
+        },
+        onError: (error) => {
+          console.error("TUS upload error for", task.name, error);
+          tasksRef.current = tasksRef.current.map((t) =>
+            t.id === task.id
+              ? {
+                  ...t,
+                  status: "failed",
+                  errorMessage: error.message || "Gagal mengunggah file",
+                  speed: "Gagal",
+                }
+              : t
+          );
+          setTasks([...tasksRef.current]);
+          resolve();
+        },
+        onProgress: (bytesUploaded, bytesTotal) => {
           const now = Date.now();
-          const timeDelta = (now - lastTime) / 1000; // in seconds
+          const timeDelta = (now - lastTime) / 1000;
           let speedStr = "";
 
           if (timeDelta >= 0.5) {
-            const bytesDelta = event.loaded - lastLoaded;
-            const bytesPerSec = bytesDelta / timeDelta;
+            const bytesDelta = bytesUploaded - lastLoaded;
+            const bytesPerSec = bytesDelta / Math.max(0.001, timeDelta);
             speedStr = formatBytes(bytesPerSec) + "/s";
-            lastLoaded = event.loaded;
+            lastLoaded = bytesUploaded;
             lastTime = now;
           }
 
-          const percent = Math.min(
-            99,
-            Math.round((event.loaded / event.total) * 100)
-          );
+          const total = bytesTotal || task.size;
+          const percent =
+            total > 0
+              ? Math.min(99, Math.round((bytesUploaded / total) * 100))
+              : 0;
 
           tasksRef.current = tasksRef.current.map((t) =>
             t.id === task.id
               ? {
                   ...t,
-                  loaded: event.loaded,
+                  loaded: bytesUploaded,
                   progress: percent,
                   speed: speedStr || t.speed || `${percent}%`,
                 }
               : t
           );
           setTasks([...tasksRef.current]);
-        }
-      };
-
-      xhr.onload = () => {
-        xhrMapRef.current.delete(task.id);
-        if (xhr.status >= 200 && xhr.status < 300) {
+        },
+        onSuccess: () => {
+          tusMapRef.current.delete(task.id);
           tasksRef.current = tasksRef.current.map((t) =>
             t.id === task.id
               ? {
@@ -150,63 +165,23 @@ export function UploadProvider({ children }: { children: ReactNode }) {
           }
 
           resolve();
-        } else {
-          let errorMsg = "Upload gagal";
-          try {
-            const res = JSON.parse(xhr.responseText);
-            errorMsg = res.error || errorMsg;
-          } catch {
-            // ignore
+        },
+      });
+
+      tusMapRef.current.set(task.id, upload);
+
+      // Check if there are previous uploads in localStorage to resume seamlessly
+      upload
+        .findPreviousUploads()
+        .then((previousUploads) => {
+          if (previousUploads.length > 0) {
+            upload.resumeFromPreviousUpload(previousUploads[0]);
           }
-
-          tasksRef.current = tasksRef.current.map((t) =>
-            t.id === task.id
-              ? {
-                  ...t,
-                  status: "failed",
-                  errorMessage: errorMsg,
-                  speed: "Gagal",
-                }
-              : t
-          );
-          setTasks([...tasksRef.current]);
-          resolve();
-        }
-      };
-
-      xhr.onerror = () => {
-        xhrMapRef.current.delete(task.id);
-        tasksRef.current = tasksRef.current.map((t) =>
-          t.id === task.id
-            ? {
-                ...t,
-                status: "failed",
-                errorMessage: "Koneksi terputus ke server",
-                speed: "Gagal",
-              }
-            : t
-        );
-        setTasks([...tasksRef.current]);
-        resolve();
-      };
-
-      xhr.onabort = () => {
-        xhrMapRef.current.delete(task.id);
-        tasksRef.current = tasksRef.current.map((t) =>
-          t.id === task.id
-            ? {
-                ...t,
-                status: "failed",
-                errorMessage: "Dibatalkan",
-                speed: "",
-              }
-            : t
-        );
-        setTasks([...tasksRef.current]);
-        resolve();
-      };
-
-      xhr.send(formData);
+          upload.start();
+        })
+        .catch(() => {
+          upload.start();
+        });
     });
   };
 
@@ -292,7 +267,7 @@ export function UploadProvider({ children }: { children: ReactNode }) {
         const input = document.createElement("input");
         input.type = "file";
         input.multiple = true;
-        input.accept = "image/*,video/*,.mov,.mp4,.webm,.heic,.jpg,.jpeg,.png";
+        input.accept = "image/*,video/*,.mov,.mp4,.webm,.mkv,.heic,.jpg,.jpeg,.png";
         input.style.display = "none";
         input.onchange = (e) => {
           const files = (e.target as HTMLInputElement).files;
@@ -314,11 +289,77 @@ export function UploadProvider({ children }: { children: ReactNode }) {
     [uploadFiles]
   );
 
+  const pauseTask = useCallback((id: string) => {
+    const upload = tusMapRef.current.get(id);
+    if (upload) {
+      upload.abort();
+    }
+    tasksRef.current = tasksRef.current.map((t) =>
+      t.id === id ? { ...t, status: "paused", speed: "Dijeda" } : t
+    );
+    setTasks([...tasksRef.current]);
+  }, []);
+
+  const resumeTask = useCallback(
+    (id: string) => {
+      const upload = tusMapRef.current.get(id);
+      if (upload) {
+        tasksRef.current = tasksRef.current.map((t) =>
+          t.id === id
+            ? { ...t, status: "uploading", speed: "Melanjutkan..." }
+            : t
+        );
+        setTasks([...tasksRef.current]);
+        upload.start();
+      } else {
+        const task = tasksRef.current.find((t) => t.id === id);
+        if (task) {
+          tasksRef.current = tasksRef.current.map((t) =>
+            t.id === id
+              ? { ...t, status: "waiting", speed: "Menunggu giliran..." }
+              : t
+          );
+          setTasks([...tasksRef.current]);
+          queueRef.current.push(task);
+          processQueue();
+        }
+      }
+    },
+    [processQueue]
+  );
+
+  const retryTask = useCallback(
+    (id: string) => {
+      const task = tasksRef.current.find((t) => t.id === id);
+      if (task) {
+        const oldUpload = tusMapRef.current.get(id);
+        if (oldUpload) {
+          oldUpload.abort();
+          tusMapRef.current.delete(id);
+        }
+        tasksRef.current = tasksRef.current.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                status: "waiting",
+                speed: "Menunggu giliran...",
+                errorMessage: undefined,
+              }
+            : t
+        );
+        setTasks([...tasksRef.current]);
+        queueRef.current.push(task);
+        processQueue();
+      }
+    },
+    [processQueue]
+  );
+
   const cancelTask = useCallback((id: string) => {
-    const xhr = xhrMapRef.current.get(id);
-    if (xhr) {
-      xhr.abort();
-      xhrMapRef.current.delete(id);
+    const upload = tusMapRef.current.get(id);
+    if (upload) {
+      upload.abort(true).catch(() => {});
+      tusMapRef.current.delete(id);
     }
     queueRef.current = queueRef.current.filter((t) => t.id !== id);
     tasksRef.current = tasksRef.current.filter((t) => t.id !== id);
@@ -327,14 +368,20 @@ export function UploadProvider({ children }: { children: ReactNode }) {
 
   const clearFinished = useCallback(() => {
     tasksRef.current = tasksRef.current.filter(
-      (t) => t.status === "uploading" || t.status === "waiting"
+      (t) =>
+        t.status === "uploading" ||
+        t.status === "waiting" ||
+        t.status === "paused"
     );
     setTasks([...tasksRef.current]);
   }, []);
 
   const closeWidget = useCallback(() => {
     const hasActive = tasksRef.current.some(
-      (t) => t.status === "uploading" || t.status === "waiting"
+      (t) =>
+        t.status === "uploading" ||
+        t.status === "waiting" ||
+        t.status === "paused"
     );
     if (hasActive) {
       setIsWidgetMinimized(true);
@@ -350,7 +397,10 @@ export function UploadProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const activeUploadCount = tasks.filter(
-    (t) => t.status === "uploading" || t.status === "waiting"
+    (t) =>
+      t.status === "uploading" ||
+      t.status === "waiting" ||
+      t.status === "paused"
   ).length;
 
   const totalLoaded = tasks.reduce((sum, t) => sum + t.loaded, 0);
@@ -366,6 +416,9 @@ export function UploadProvider({ children }: { children: ReactNode }) {
         isWidgetMinimized,
         uploadFiles,
         openFilePicker,
+        pauseTask,
+        resumeTask,
+        retryTask,
         cancelTask,
         clearFinished,
         closeWidget,

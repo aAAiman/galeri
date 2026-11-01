@@ -3,7 +3,6 @@
 import React from "react";
 import {
   X,
-  Minus,
   ChevronUp,
   ChevronDown,
   Upload,
@@ -12,6 +11,9 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  Pause,
+  Play,
+  RotateCcw,
 } from "lucide-react";
 import { useUpload } from "./UploadContext";
 
@@ -20,6 +22,9 @@ export function BackgroundUploadWidget() {
     tasks,
     isWidgetOpen,
     isWidgetMinimized,
+    pauseTask,
+    resumeTask,
+    retryTask,
     cancelTask,
     closeWidget,
     toggleMinimize,
@@ -203,6 +208,8 @@ export function BackgroundUploadWidget() {
                           ? "bg-emerald-500"
                           : task.status === "failed"
                           ? "bg-rose-500"
+                          : task.status === "paused"
+                          ? "bg-amber-400"
                           : "bg-[#d96b82]"
                       }`}
                       style={{ width: `${task.progress}%` }}
@@ -217,6 +224,8 @@ export function BackgroundUploadWidget() {
                           ? "text-emerald-600 font-medium"
                           : task.status === "failed"
                           ? "text-rose-500 font-medium"
+                          : task.status === "paused"
+                          ? "text-amber-500 font-medium"
                           : "text-neutral-500 rose:text-[#a38088]"
                       }`}
                     >
@@ -231,26 +240,69 @@ export function BackgroundUploadWidget() {
                   </div>
                 </div>
 
-                {/* Action Icon / Checkmark */}
-                <div className="shrink-0 flex items-center justify-center w-6">
+                {/* Action Icon / Control Buttons */}
+                <div className="shrink-0 flex items-center justify-center">
                   {task.status === "completed" ? (
-                    <div className="h-5 w-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <div className="h-5 w-5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                       <Check className="h-3.5 w-3.5 stroke-[2.5]" />
                     </div>
                   ) : task.status === "uploading" ? (
-                    <div className="relative">
-                      <Loader2 className="h-4 w-4 animate-spin text-[#d96b82]" />
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => pauseTask(task.id)}
+                        className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                        title="Jeda upload"
+                      >
+                        <Pause className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => cancelTask(task.id)}
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-white dark:bg-neutral-800 text-neutral-500 hover:text-rose-500 rounded-full flex items-center justify-center transition-opacity"
+                        className="p-1 rounded-md text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                         title="Batalkan"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : task.status === "paused" ? (
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => resumeTask(task.id)}
+                        className="p-1 rounded-md text-[#d96b82] hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                        title="Lanjutkan upload"
+                      >
+                        <Play className="h-3.5 w-3.5 fill-current" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cancelTask(task.id)}
+                        className="p-1 rounded-md text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                        title="Batalkan"
+                      >
+                        <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   ) : task.status === "failed" ? (
-                    <AlertCircle className="h-4 w-4 text-rose-500" />
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => retryTask(task.id)}
+                        className="p-1 rounded-md text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+                        title="Coba lagi"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cancelTask(task.id)}
+                        className="p-1 rounded-md text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                        title="Hapus"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   ) : (
                     <button
                       type="button"
