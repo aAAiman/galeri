@@ -274,17 +274,17 @@ export default function HomeGalleryPage() {
       <Navigation onOpenUpload={() => setIsUploadOpen(true)} />
 
       {/* Main Timeline View */}
-      <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
-        {/* Understated Minimal Header with Frosted Glass */}
-        <header className="sticky top-0 z-30 bg-white/80 rose:bg-[#fff9f9]/85 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 py-2.5 flex items-center justify-between gap-3 select-none">
+      <main className="flex-1 flex flex-col min-w-0 md:pl-52 lg:pl-56 pt-14 pb-20 md:pb-8">
+        {/* Fixed Header */}
+        <header className="fixed top-0 left-0 right-0 md:left-52 lg:left-56 z-30 h-14 bg-white/95 dark:bg-neutral-900/95 rose:bg-[#fff9f9]/95 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-2.5 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-3 select-none">
           {/* Filter Pills & Grid Zoom Controls */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center bg-neutral-100 rose:bg-[#fcecef] rounded-lg p-0.5 text-xs border border-transparent rose:border-[#f4d8de]">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div className="flex items-center bg-neutral-100 rose:bg-[#fcecef] rounded-lg p-0.5 text-xs border border-transparent rose:border-[#f4d8de] shrink-0">
               {(["all", "photo", "video"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setFilter(tab)}
-                  className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
+                  className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-md text-[11px] sm:text-xs transition-colors cursor-pointer ${
                     filter === tab
                       ? theme === "rose"
                         ? "bg-[#d96b82] text-white font-medium shadow-xs"
@@ -311,7 +311,7 @@ export default function HomeGalleryPage() {
               <button
                 type="button"
                 onClick={handleToggleSelectAll}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer select-none ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer select-none shrink-0 ${
                   selectedIds.size > 0
                     ? "bg-blue-600 text-white rose:bg-[#d96b82] rose:text-white shadow-xs"
                     : "bg-neutral-100 dark:bg-neutral-800 rose:bg-[#fcecef] text-neutral-600 dark:text-neutral-300 rose:text-[#7a5c63] hover:text-neutral-900 rose:hover:text-[#d96b82] border border-transparent rose:border-[#f4d8de]"
@@ -330,7 +330,7 @@ export default function HomeGalleryPage() {
                     ? `${selectedIds.size} Dipilih`
                     : "Pilih Semua"}
                 </span>
-                <span className="sm:hidden">
+                <span className="sm:hidden text-[11px]">
                   {selectedIds.size > 0 ? selectedIds.size : "Pilih"}
                 </span>
               </button>
@@ -338,15 +338,15 @@ export default function HomeGalleryPage() {
           </div>
 
           {/* Right Side: Upload (mobile) & Couple Profile Avatar */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Upload Action on mobile */}
             <button
               onClick={() => setIsUploadOpen(true)}
-              className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#d96b82] text-white text-xs font-medium shadow-xs"
+              className="md:hidden flex items-center gap-1 px-2 py-1 rounded-lg bg-[#d96b82] text-white text-xs font-medium shadow-xs"
               title="Unggah"
             >
               <Upload className="h-3.5 w-3.5" />
-              <span>Unggah</span>
+              <span className="hidden xs:inline">Unggah</span>
             </button>
 
             {/* Couple Avatar in Header */}

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2, Heart, Lock } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,12 +48,13 @@ export default function LoginPage() {
         aria-hidden="true"
       />
 
-      <div className="w-full max-w-xs relative z-10">
-        <div className="border border-[#f4d8de] rounded-2xl p-6 space-y-5 bg-white/95 backdrop-blur-md shadow-xl shadow-rose-100/50">
+      <div className="w-full max-w-xs relative z-10 px-1 sm:px-0">
+        <div className="border border-[#f4d8de] rounded-2xl p-5 sm:p-6 space-y-4 bg-white/95 backdrop-blur-md shadow-xl shadow-rose-100/50">
           <div className="flex flex-col items-center text-center">
-            {/* Romantic Couple Gatekeeper Icon */}
-
-            <p className="text-[11px] text-neutral-500 mt-2">
+            <h1 className="text-base font-bold tracking-tight text-neutral-900">
+              GaleriKita
+            </h1>
+            <p className="text-[11px] text-neutral-500 mt-0.5">
               Masukkan password
             </p>
           </div>

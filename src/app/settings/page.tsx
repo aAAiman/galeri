@@ -152,13 +152,25 @@ export default function SettingsPage() {
     <div className="min-h-screen flex bg-transparent text-neutral-900">
       <Navigation />
 
-      <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 rose:bg-[#fff9f9]/85 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 py-2.5">
-          <div className="max-w-2xl mx-auto w-full">
+      <main className="flex-1 flex flex-col min-w-0 md:pl-52 lg:pl-56 pt-14 pb-20 md:pb-8">
+        {/* Fixed Header */}
+        <header className="fixed top-0 left-0 right-0 md:left-52 lg:left-56 z-30 h-14 bg-white/95 dark:bg-neutral-900/95 rose:bg-[#fff9f9]/95 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 flex items-center justify-between select-none">
+          <div className="max-w-2xl mx-auto w-full flex items-center justify-between">
             <h1 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
               Pengaturan
             </h1>
+
+            {/* Couple Avatar */}
+            <div className="relative shrink-0 ml-1 rounded-full p-0.5">
+              <div className="h-7 w-7 rounded-full overflow-hidden border border-neutral-300 dark:border-neutral-700 rose:border-[#d96b82] ring-1 ring-neutral-200 dark:ring-neutral-800 rose:ring-[#fcdde3]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/couple/collage.jpg"
+                  alt="Momen Berdua"
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+            </div>
           </div>
         </header>
 

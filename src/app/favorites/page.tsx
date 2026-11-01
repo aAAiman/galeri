@@ -107,20 +107,20 @@ export default function FavoritesPage() {
     <div className="min-h-screen flex bg-transparent text-neutral-900 rose:text-[#3a2228] transition-colors relative">
       <Navigation onOpenUpload={() => setIsUploadOpen(true)} />
 
-      <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 rose:bg-[#fff9f9]/85 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 py-2.5 flex items-center justify-between select-none">
-          <div className="flex items-center gap-2">
+      <main className="flex-1 flex flex-col min-w-0 md:pl-52 lg:pl-56 pt-14 pb-20 md:pb-8">
+        {/* Fixed Header */}
+        <header className="fixed top-0 left-0 right-0 md:left-52 lg:left-56 z-30 h-14 bg-white/95 dark:bg-neutral-900/95 rose:bg-[#fff9f9]/95 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-2.5 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-3 select-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <h1 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 rose:text-[#3a2228]">
               Favorit
             </h1>
             {theme === "rose" && <span className="text-xs text-rose-500 font-semibold">♡</span>}
-            <span className="text-xs text-neutral-500 rose:text-[#a38088] font-normal">
+            <span className="hidden xs:inline text-xs text-neutral-500 rose:text-[#a38088] font-normal truncate">
               • {mediaList.length} media
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <GridZoomControls
               zoomLevel={zoomLevel}
               canZoomIn={canZoomIn}
@@ -133,7 +133,7 @@ export default function FavoritesPage() {
               <button
                 type="button"
                 onClick={handleToggleSelectAll}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer select-none ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer select-none shrink-0 ${
                   selectedIds.size > 0
                     ? "bg-blue-600 text-white rose:bg-[#d96b82] rose:text-white shadow-xs"
                     : "bg-neutral-100 dark:bg-neutral-800 rose:bg-[#fcecef] text-neutral-600 dark:text-neutral-300 rose:text-[#7a5c63] hover:text-neutral-900 rose:hover:text-[#d96b82] border border-transparent rose:border-[#f4d8de]"
@@ -152,7 +152,7 @@ export default function FavoritesPage() {
                     ? `${selectedIds.size} Dipilih`
                     : "Pilih Semua"}
                 </span>
-                <span className="sm:hidden">
+                <span className="sm:hidden text-[11px]">
                   {selectedIds.size > 0 ? selectedIds.size : "Pilih"}
                 </span>
               </button>

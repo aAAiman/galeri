@@ -80,20 +80,20 @@ export default function AlbumsPage() {
     <div className="min-h-screen flex bg-transparent text-neutral-900 rose:text-[#3a2228] transition-colors relative">
       <Navigation onOpenUpload={() => setIsUploadOpen(true)} />
 
-      <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 rose:bg-[#fff9f9]/85 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 py-2.5 flex items-center justify-between gap-3 select-none">
-          <div className="flex items-center gap-2">
+      <main className="flex-1 flex flex-col min-w-0 md:pl-52 lg:pl-56 pt-14 pb-20 md:pb-8">
+        {/* Fixed Header */}
+        <header className="fixed top-0 left-0 right-0 md:left-52 lg:left-56 z-30 h-14 bg-white/95 dark:bg-neutral-900/95 rose:bg-[#fff9f9]/95 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-2.5 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-3 select-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <h1 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 rose:text-[#3a2228]">
               {theme === "rose" ? "Album Kita" : "Album"}
             </h1>
             {theme === "rose" && <span className="text-xs text-rose-500 font-semibold">♡</span>}
-            <span className="text-xs text-neutral-500 rose:text-[#a38088]">
+            <span className="hidden xs:inline text-xs text-neutral-500 rose:text-[#a38088] truncate">
               • {albums.length} album
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400 rose:text-[#a38088]" />
               <input
@@ -101,16 +101,17 @@ export default function AlbumsPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari album..."
-                className="w-36 sm:w-56 pl-8 pr-3 py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-900 rose:bg-white rose:border rose:border-[#f3d8de] text-xs text-neutral-900 dark:text-neutral-100 rose:text-[#3a2228] placeholder-neutral-400 rose:placeholder-[#a38088] focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-600 rose:focus:ring-[#d96b82] transition-all"
+                className="w-24 xs:w-36 sm:w-56 pl-7 sm:pl-8 pr-2.5 sm:pr-3 py-1 sm:py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-900 rose:bg-white rose:border rose:border-[#f3d8de] text-xs text-neutral-900 dark:text-neutral-100 rose:text-[#3a2228] placeholder-neutral-400 rose:placeholder-[#a38088] focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-600 rose:focus:ring-[#d96b82] transition-all"
               />
             </div>
 
             <button
               onClick={() => setIsCreateOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 dark:bg-white rose:bg-[#d96b82] text-white dark:text-black rose:text-white text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 rose:hover:bg-[#c7556e] transition-colors cursor-pointer shadow-xs"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-neutral-900 dark:bg-white rose:bg-[#d96b82] text-white dark:text-black rose:text-white text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 rose:hover:bg-[#c7556e] transition-colors cursor-pointer shadow-xs"
             >
               <FolderPlus className="h-3.5 w-3.5" />
-              <span>Buat Album</span>
+              <span className="hidden xs:inline">Buat Album</span>
+              <span className="xs:hidden">Buat</span>
             </button>
 
             {/* Couple Avatar in Header */}

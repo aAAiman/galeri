@@ -31,7 +31,7 @@ export function GridZoomControls({
         <ZoomOut className="h-3.5 w-3.5" />
       </button>
 
-      <span className="text-[10px] font-medium px-1 text-neutral-500 dark:text-neutral-400 rose:text-[#9e7a83] min-w-[36px] text-center capitalize">
+      <span className="hidden sm:inline text-[10px] font-medium px-1 text-neutral-500 dark:text-neutral-400 rose:text-[#9e7a83] min-w-[36px] text-center capitalize">
         {zoomLevel === "compact"
           ? "Banyak"
           : zoomLevel === "large"

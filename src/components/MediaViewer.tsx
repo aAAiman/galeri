@@ -249,11 +249,11 @@ export function MediaViewer({
           >
             <X className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2 pl-2 border-l border-neutral-800 text-xs">
-            <span className="font-medium text-neutral-200 truncate max-w-xs md:max-w-md">
+          <div className="flex items-center gap-2 pl-2 border-l border-neutral-800 text-xs min-w-0">
+            <span className="font-medium text-neutral-200 truncate max-w-[110px] xs:max-w-[170px] sm:max-w-xs md:max-w-md">
               {currentMedia.original_filename}
             </span>
-            <span className="text-neutral-500">
+            <span className="text-neutral-500 whitespace-nowrap shrink-0">
               {currentIndex + 1} / {mediaList.length}
             </span>
           </div>
@@ -392,7 +392,7 @@ export function MediaViewer({
 
         {/* Minimal Info Panel */}
         {showInfo && (
-          <aside className="absolute right-0 top-0 bottom-0 w-72 bg-neutral-900 border-l border-neutral-800 text-neutral-200 p-4 overflow-y-auto z-20 text-xs space-y-4 animate-in slide-in-from-right-4 duration-150">
+          <aside className="absolute right-0 top-0 bottom-0 w-full sm:w-72 max-w-full bg-neutral-900 border-l border-neutral-800 text-neutral-200 p-4 overflow-y-auto z-20 text-xs space-y-4 animate-in slide-in-from-right-4 duration-150">
             <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
               <span className="font-semibold text-neutral-100">Detail</span>
               <button

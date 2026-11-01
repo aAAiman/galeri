@@ -71,8 +71,8 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
 
   return (
     <>
-      {/* Desktop Minimal Sidebar */}
-      <aside className="hidden md:flex flex-col w-56 border-r border-neutral-200/80 rose:border-[#f4d8de]/80 bg-white/80 rose:bg-[#fff9f9]/85 p-3 shrink-0 h-screen sticky top-0 justify-between select-none z-20 backdrop-blur-md">
+      {/* Desktop Minimal Sidebar (Fixed permanently on left) */}
+      <aside className="hidden md:flex flex-col w-52 lg:w-56 border-r border-neutral-200/80 rose:border-[#f4d8de]/80 bg-white/95 rose:bg-[#fff9f9]/95 p-3 shrink-0 fixed top-0 bottom-0 left-0 justify-between select-none z-40 backdrop-blur-md overflow-y-auto scrollbar-none">
         <div className="space-y-4">
           {/* Logo / Couple Profile */}
           <div className="flex flex-col px-2 py-1">
@@ -302,8 +302,8 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
         </div>
       </aside>
 
-      {/* Mobile Bottom Bar (iOS/Google Photos inspired) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 rose:bg-[#fff9f9]/92 backdrop-blur-md border-t border-neutral-200/80 rose:border-[#f4d8de]/80 px-3 py-1.5 flex items-center justify-around select-none">
+      {/* Mobile Bottom Bar (Fixed 5-column grid so items never shift position) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 rose:bg-[#fff9f9]/98 backdrop-blur-md border-t border-neutral-200/80 rose:border-[#f4d8de]/80 px-1 py-1 pb-[max(0.375rem,env(safe-area-inset-bottom))] grid grid-cols-5 items-center select-none shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -315,7 +315,7 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-md text-[11px] font-medium transition-colors ${isActive
+              className={`flex flex-col items-center justify-center gap-0.5 py-1 px-0.5 rounded-lg text-[10px] sm:text-[11px] font-medium transition-colors text-center w-full select-none ${isActive
                 ? theme === "rose"
                   ? "text-[#d96b82] font-semibold"
                   : "text-neutral-900 dark:text-neutral-100 font-semibold"
@@ -324,8 +324,13 @@ export function Navigation({ onOpenUpload }: NavigationProps) {
                   : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
                 }`}
             >
-              <Icon className="h-4 w-4" />
-              <span>{item.label}</span>
+              <div className="relative">
+                <Icon className={`h-4 w-4 transition-transform ${isActive ? "scale-110" : ""}`} />
+                {isActive && theme === "rose" && (
+                  <span className="absolute -top-0.5 -right-1 h-1.5 w-1.5 rounded-full bg-[#d96b82]" />
+                )}
+              </div>
+              <span className="truncate max-w-full leading-tight">{item.label}</span>
             </Link>
           );
         })}

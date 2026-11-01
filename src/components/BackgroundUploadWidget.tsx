@@ -42,10 +42,10 @@ export function BackgroundUploadWidget() {
   // Minimized Floating Pill View (Google Drive style compact bar)
   if (isWidgetMinimized) {
     return (
-      <div className="fixed bottom-16 md:bottom-4 right-3 md:right-5 z-50 select-none animate-in fade-in slide-in-from-bottom-2 duration-150">
+      <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] md:bottom-4 right-2 sm:right-5 z-50 select-none animate-in fade-in slide-in-from-bottom-2 duration-150 max-w-[calc(100vw-1rem)]">
         <div
           onClick={toggleMinimize}
-          className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-full bg-neutral-900/95 dark:bg-neutral-800/95 rose:bg-[#fff0f3]/95 text-white rose:text-[#3a2228] border border-neutral-700/60 rose:border-[#f3c8d1] shadow-xl backdrop-blur-md cursor-pointer hover:scale-[1.02] transition-all text-xs font-medium"
+          className="flex items-center gap-2 px-3 py-2 rounded-full bg-neutral-900/95 dark:bg-neutral-800/95 rose:bg-[#fff0f3]/95 text-white rose:text-[#3a2228] border border-neutral-700/60 rose:border-[#f3c8d1] shadow-xl backdrop-blur-md cursor-pointer hover:scale-[1.02] transition-all text-xs font-medium"
         >
           {isAllFinished ? (
             <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
@@ -55,11 +55,11 @@ export function BackgroundUploadWidget() {
             <Loader2 className="h-4 w-4 animate-spin text-[#d96b82] shrink-0" />
           )}
 
-          <div className="leading-tight">
-            <span>
+          <div className="leading-tight truncate max-w-[190px] sm:max-w-none">
+            <span className="truncate">
               {isAllFinished
-                ? `${completedCount} file selesai diunggah`
-                : `Mengunggah (${overallProgress}%) • ${activeUploadCount} item`}
+                ? `${completedCount} file selesai`
+                : `Unggah (${overallProgress}%) • ${activeUploadCount} item`}
             </span>
           </div>
 
@@ -69,7 +69,7 @@ export function BackgroundUploadWidget() {
               e.stopPropagation();
               toggleMinimize();
             }}
-            className="p-1 rounded-full hover:bg-white/20 rose:hover:bg-rose-200/50 transition-colors ml-1"
+            className="p-1 rounded-full hover:bg-white/20 rose:hover:bg-rose-200/50 transition-colors ml-0.5 shrink-0"
             title="Perbesar panel upload"
           >
             <ChevronUp className="h-3.5 w-3.5" />
@@ -82,7 +82,7 @@ export function BackgroundUploadWidget() {
                 e.stopPropagation();
                 closeWidget();
               }}
-              className="p-1 rounded-full hover:bg-white/20 rose:hover:bg-rose-200/50 transition-colors"
+              className="p-1 rounded-full hover:bg-white/20 rose:hover:bg-rose-200/50 transition-colors shrink-0"
               title="Tutup"
             >
               <X className="h-3.5 w-3.5" />
@@ -95,7 +95,7 @@ export function BackgroundUploadWidget() {
 
   // Expanded View (Full Google Drive style card)
   return (
-    <div className="fixed bottom-16 md:bottom-4 right-3 md:right-5 z-50 w-[92vw] sm:w-96 select-none animate-in fade-in slide-in-from-bottom-3 duration-200">
+    <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] md:bottom-4 right-2 sm:right-5 z-50 w-[calc(100vw-1rem)] sm:w-96 max-w-sm select-none animate-in fade-in slide-in-from-bottom-3 duration-200">
       <div className="border border-neutral-200/80 dark:border-neutral-800 rose:border-[#f4d8de] bg-white/95 dark:bg-neutral-900/95 rose:bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Card Header */}
         <div className="px-4 py-3 bg-neutral-900 rose:bg-[#3a2228] text-white flex items-center justify-between">

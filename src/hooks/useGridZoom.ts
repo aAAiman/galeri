@@ -118,13 +118,13 @@ export function useGridZoom() {
   }, [zoomIn, zoomOut]);
 
   // Ultra-responsive Google & Apple Photos style grid classes
-  // User requested: previous compact is now the new "large", and smaller levels are even denser
+  // Seamless scaling from 320px mobile to 4K displays
   const gridClass =
     zoomLevel === "large"
-      ? "grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5"
+      ? "grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 xl:grid-cols-10 gap-1.5"
       : zoomLevel === "normal"
-      ? "grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-1"
-      : "grid-cols-6 sm:grid-cols-9 md:grid-cols-12 lg:grid-cols-15 gap-0.5 sm:gap-1";
+      ? "grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-1"
+      : "grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-0.5 sm:gap-1";
 
   return {
     zoomLevel,

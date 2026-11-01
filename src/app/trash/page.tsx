@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Navigation } from "@/components/Navigation";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { useGridZoom } from "@/hooks/useGridZoom";
@@ -146,20 +147,20 @@ export default function TrashPage() {
     <div className="min-h-screen flex bg-transparent text-neutral-900">
       <Navigation />
 
-      <main className="flex-1 flex flex-col min-w-0 pb-20 md:pb-8">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 rose:bg-[#fff9f9]/85 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-4 py-2.5 flex items-center justify-between select-none">
-          <div className="flex items-center gap-2">
+      <main className="flex-1 flex flex-col min-w-0 md:pl-52 lg:pl-56 pt-14 pb-20 md:pb-8">
+        {/* Fixed Header */}
+        <header className="fixed top-0 left-0 right-0 md:left-52 lg:left-56 z-30 h-14 bg-white/95 dark:bg-neutral-900/95 rose:bg-[#fff9f9]/95 backdrop-blur-md border-b border-neutral-200/80 rose:border-[#f4d8de]/80 px-2.5 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-3 select-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <h1 className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
               Trash
             </h1>
-            <span className="text-xs text-neutral-500 font-normal">
+            <span className="hidden xs:inline text-xs text-neutral-500 font-normal truncate">
               • {trashItems.length} item • Dihapus setelah {retentionDays} hari
             </span>
           </div>
 
           {/* Action buttons & Zoom */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <GridZoomControls
               zoomLevel={zoomLevel}
               canZoomIn={canZoomIn}
@@ -169,44 +170,61 @@ export default function TrashPage() {
             />
 
             {trashItems.length > 0 && (
-              <div className="flex items-center gap-1.5">
-              <button
-                onClick={handleSelectAll}
-                className="px-2.5 py-1 rounded-md text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
-              >
-                {selectedIds.size === trashItems.length
-                  ? "Batal Pilih"
-                  : "Pilih Semua"}
-              </button>
-
-              {selectedIds.size > 0 ? (
-                <>
-                  <button
-                    onClick={() => handleRestore(Array.from(selectedIds))}
-                    disabled={isProcessing}
-                    className="flex items-center gap-1 px-3 py-1 rounded-md bg-neutral-900 dark:bg-white text-white dark:text-black text-xs font-medium cursor-pointer"
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                    <span>Pulihkan ({selectedIds.size})</span>
-                  </button>
-                  <button
-                    onClick={() => setPermanentConfirmOpen(true)}
-                    disabled={isProcessing}
-                    className="px-3 py-1 rounded-md bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium cursor-pointer"
-                  >
-                    Hapus Permanen
-                  </button>
-                </>
-              ) : (
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                 <button
-                  onClick={() => setEmptyConfirmOpen(true)}
-                  className="px-3 py-1 rounded-md text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-xs font-medium cursor-pointer"
+                  onClick={handleSelectAll}
+                  className="px-2 sm:px-2.5 py-1 rounded-md text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
                 >
-                  Kosongkan Trash
+                  {selectedIds.size === trashItems.length
+                    ? "Batal"
+                    : "Pilih Semua"}
                 </button>
-              )}
-            </div>
-          )}
+
+                {selectedIds.size > 0 ? (
+                  <>
+                    <button
+                      onClick={() => handleRestore(Array.from(selectedIds))}
+                      disabled={isProcessing}
+                      className="flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-md bg-neutral-900 dark:bg-white text-white dark:text-black text-xs font-medium cursor-pointer"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      <span>Pulihkan ({selectedIds.size})</span>
+                    </button>
+                    <button
+                      onClick={() => setPermanentConfirmOpen(true)}
+                      disabled={isProcessing}
+                      className="px-2.5 sm:px-3 py-1 rounded-md bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium cursor-pointer"
+                    >
+                      <span className="hidden xs:inline">Hapus Permanen</span>
+                      <span className="xs:hidden">Hapus</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setEmptyConfirmOpen(true)}
+                    className="px-2.5 sm:px-3 py-1 rounded-md text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-xs font-medium cursor-pointer"
+                  >
+                    Kosongkan Trash
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Couple Avatar in Header */}
+            <Link
+              href="/settings"
+              className="relative shrink-0 ml-1 rounded-full p-0.5 transition-transform hover:scale-105"
+              title="Pengaturan Tema & Latar Berdua"
+            >
+              <div className="h-7 w-7 rounded-full overflow-hidden border border-neutral-300 dark:border-neutral-700 rose:border-[#d96b82] ring-1 ring-neutral-200 dark:ring-neutral-800 rose:ring-[#fcdde3]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/couple/collage.jpg"
+                  alt="Momen Berdua"
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+            </Link>
           </div>
         </header>
 

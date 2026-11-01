@@ -45,8 +45,8 @@ export function ActionToolbar({
   if (selectedCount === 0) return null;
 
   return (
-    <div className="fixed bottom-16 md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900/95 dark:bg-neutral-800/95 rose:bg-white/95 text-white rose:text-[#3a2228] border border-neutral-700/60 rose:border-[#f4d8de] px-3.5 py-2 rounded-xl shadow-xl rose:shadow-[0_8px_30px_rgb(217,107,130,0.18)] backdrop-blur-md flex items-center gap-1.5 sm:gap-2 select-none animate-in fade-in slide-in-from-bottom-2 duration-150 max-w-[95vw] overflow-x-auto scrollbar-none">
-      <div className="flex items-center gap-1.5 sm:gap-2 pr-2 border-r border-neutral-700 rose:border-[#f3c8d1] shrink-0">
+    <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900/95 dark:bg-neutral-800/95 rose:bg-white/95 text-white rose:text-[#3a2228] border border-neutral-700/60 rose:border-[#f4d8de] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl shadow-xl rose:shadow-[0_8px_30px_rgb(217,107,130,0.18)] backdrop-blur-md flex items-center gap-1 sm:gap-2 select-none animate-in fade-in slide-in-from-bottom-2 duration-150 max-w-[96vw] overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1 sm:gap-2 pr-1.5 sm:pr-2 border-r border-neutral-700 rose:border-[#f3c8d1] shrink-0">
         <button
           onClick={onClearSelection}
           className="p-1 rounded-md text-neutral-400 rose:text-[#d96b82] hover:text-white rose:hover:text-[#b84860] hover:bg-neutral-700/50 rose:hover:bg-[#fde2e8] transition-colors cursor-pointer"
