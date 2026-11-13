@@ -6,6 +6,10 @@ import { promisify } from "util";
 import { pool } from "../db/connection";
 
 const execFileAsync = promisify(execFile);
+
+// Restrict Sharp libvips concurrency to 1 to avoid thread pool exhaustion & high memory spikes on home servers
+sharp.concurrency(1);
+sharp.cache(false);
 import {
   getOriginalPath,
   getVariantPath,

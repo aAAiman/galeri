@@ -17,7 +17,7 @@ services:
       - DB_USER=galeri
       - DB_PASSWORD=galerikita_secure_password
       - DB_NAME=galerikita
-      - DB_CONNECTION_LIMIT=5
+      - DB_CONNECTION_LIMIT=15
       - STORAGE_DIR=/app/storage
       - STORAGE_QUOTA_BYTES=50000000000
       - DEFAULT_PASSWORD=galerikita2026
@@ -40,11 +40,11 @@ services:
     volumes:
       - galerikita_db_data:/var/lib/mysql
       - ./galerikita_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-    #ports:
+      #ports:
       # Hanya bind ke localhost server untuk mencegah akses database dari luar
-     # - "127.0.0.1:3306:3306"
+      # - "127.0.0.1:3306:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "galeri", "-pgalerikita_secure_password"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "galeri", "-pgalerikita_secure_password" ]
       interval: 10s
       timeout: 5s
       retries: 5

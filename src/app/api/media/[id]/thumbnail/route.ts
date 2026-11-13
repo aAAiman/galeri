@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import fsPromises from "fs/promises";
+import path from "path";
 import sharp from "sharp";
 import { pool } from "@/lib/db/connection";
 import { validateSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
@@ -69,6 +70,20 @@ export async function GET(
           .resize(320, 320, { fit: "cover", position: "centre" })
           .webp({ quality: 80 })
           .toBuffer();
+
+        // Asynchronously save to disk and register in DB to avoid reprocessing
+        const thumbFilename = `thumb_${path.parse(orig.storage_key).name}.webp`;
+        const thumbPath = getVariantPath(thumbFilename);
+        fsPromises.writeFile(thumbPath, thumbBuffer)
+          .then(() =>
+            pool.query(
+              `INSERT INTO media_variants (media_id, variant_type, storage_key, mime_type, file_size, width, height)
+               VALUES (?, 'thumbnail', ?, 'image/webp', ?, 320, 320)
+               ON DUPLICATE KEY UPDATE file_size = VALUES(file_size)`,
+              [mediaId, thumbFilename, thumbBuffer.length]
+            )
+          )
+          .catch(() => {});
 
         return new NextResponse(thumbBuffer, {
           status: 200,

@@ -28,6 +28,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow OPTIONS method for CORS / preflight requests (e.g. TUS resumable uploads)
+  if (request.method === "OPTIONS") {
+    return NextResponse.next();
+  }
+
   // Allow login API endpoint
   if (pathname === "/api/auth/login") {
     return NextResponse.next();

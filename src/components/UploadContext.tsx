@@ -85,7 +85,7 @@ export function UploadProvider({ children }: { children: ReactNode }) {
 
       const upload = new tus.Upload(task.file, {
         endpoint: "/api/upload/tus",
-        chunkSize: 8 * 1024 * 1024, // 8 MiB chunks
+        chunkSize: 4 * 1024 * 1024, // 4 MiB chunks for smoother progress and quick recovery
         retryDelays: [0, 1000, 3000, 5000, 10000],
         metadata: {
           filename: task.file.name,
@@ -94,14 +94,31 @@ export function UploadProvider({ children }: { children: ReactNode }) {
         },
         onError: (error) => {
           console.error("TUS upload error for", task.name, error);
+          let friendlyMsg = "Gagal mengunggah file";
+          const rawMsg = error?.message || "";
+          if (
+            rawMsg.includes("unexpected response while uploading chunk") ||
+            rawMsg.includes("Offset mismatch")
+          ) {
+            friendlyMsg = "Gagal mengirim potongan file (koneksi terputus/konflik). Silakan klik coba lagi.";
+          } else if (
+            rawMsg.includes("413") ||
+            rawMsg.includes("kuota") ||
+            rawMsg.includes("penuh")
+          ) {
+            friendlyMsg = "Penyimpanan penuh atau kuota 50 GB terlampaui.";
+          } else if (rawMsg) {
+            friendlyMsg = rawMsg;
+          }
+
           tasksRef.current = tasksRef.current.map((t) =>
             t.id === task.id
               ? {
-                  ...t,
-                  status: "failed",
-                  errorMessage: error.message || "Gagal mengunggah file",
-                  speed: "Gagal",
-                }
+                ...t,
+                status: "failed",
+                errorMessage: friendlyMsg,
+                speed: "Gagal",
+              }
               : t
           );
           setTasks([...tasksRef.current]);
@@ -129,11 +146,11 @@ export function UploadProvider({ children }: { children: ReactNode }) {
           tasksRef.current = tasksRef.current.map((t) =>
             t.id === task.id
               ? {
-                  ...t,
-                  loaded: bytesUploaded,
-                  progress: percent,
-                  speed: speedStr || t.speed || `${percent}%`,
-                }
+                ...t,
+                loaded: bytesUploaded,
+                progress: percent,
+                speed: speedStr || t.speed || `${percent}%`,
+              }
               : t
           );
           setTasks([...tasksRef.current]);
@@ -143,12 +160,12 @@ export function UploadProvider({ children }: { children: ReactNode }) {
           tasksRef.current = tasksRef.current.map((t) =>
             t.id === task.id
               ? {
-                  ...t,
-                  loaded: task.size,
-                  progress: 100,
-                  status: "completed",
-                  speed: "Selesai",
-                }
+                ...t,
+                loaded: task.size,
+                progress: 100,
+                status: "completed",
+                speed: "Selesai",
+              }
               : t
           );
           setTasks([...tasksRef.current]);
@@ -340,11 +357,11 @@ export function UploadProvider({ children }: { children: ReactNode }) {
         tasksRef.current = tasksRef.current.map((t) =>
           t.id === id
             ? {
-                ...t,
-                status: "waiting",
-                speed: "Menunggu giliran...",
-                errorMessage: undefined,
-              }
+              ...t,
+              status: "waiting",
+              speed: "Menunggu giliran...",
+              errorMessage: undefined,
+            }
             : t
         );
         setTasks([...tasksRef.current]);
@@ -358,7 +375,7 @@ export function UploadProvider({ children }: { children: ReactNode }) {
   const cancelTask = useCallback((id: string) => {
     const upload = tusMapRef.current.get(id);
     if (upload) {
-      upload.abort(true).catch(() => {});
+      upload.abort(true).catch(() => { });
       tusMapRef.current.delete(id);
     }
     queueRef.current = queueRef.current.filter((t) => t.id !== id);

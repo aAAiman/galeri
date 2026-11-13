@@ -219,6 +219,7 @@ export function BackgroundUploadWidget() {
                   {/* Speed / Status text */}
                   <div className="flex items-center justify-between mt-1 text-[10px]">
                     <span
+                      title={task.errorMessage || task.speed || `${task.progress}%`}
                       className={`truncate ${
                         task.status === "completed"
                           ? "text-emerald-600 font-medium"
